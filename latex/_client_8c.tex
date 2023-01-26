@@ -15,6 +15,8 @@ This is the client side, after connecting to the server, using the passed argume
 {\ttfamily \#include $<$unistd.\+h$>$}\newline
 {\ttfamily \#include \char`\"{}Const.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}arg\+\_\+test.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$sys/stat.\+h$>$}\newline
+{\ttfamily \#include $<$sys/types.\+h$>$}\newline
 Include dependency graph for Client.\+c\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
@@ -25,8 +27,8 @@ Include dependency graph for Client.\+c\+:\nopagebreak
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-void \mbox{\hyperlink{_client_8c_a477ef6829acc2f78a33eac0ff8b4e71f}{loading\+Bar}} ()
-\item 
+void \mbox{\hyperlink{_client_8c_a4c9859b1b3f9af1ed005db04327c8eaf}{update\+\_\+bar}} (float percent\+\_\+done)
+\begin{DoxyCompactList}\small\item\em This function will show a progress bar that will be updated accordingly percentage of receiving a file, this is not 100\% accurate. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{_client_8c_ae824443b3f661414ba1f2718e17fe97d}{gotoxy}} (int x, int y)
 \begin{DoxyCompactList}\small\item\em printing an ANSI escape code -\/ the ones used to control tty behavior (clear screen, move cursor, etc.) \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{_client_8c_ab641718fc407b4685141ab5201c5855f}{share\+\_\+msg}} (int $\ast$sockfd, char $\ast$$\ast$argv)
@@ -37,6 +39,12 @@ void \mbox{\hyperlink{_client_8c_a64a402fa2a78ac515fba13a471de42e7}{socket\+\_\+
 \begin{DoxyCompactList}\small\item\em This function will try to connect to the server . It has two parameters \char`\"{} $\ast$sockfd   \char`\"{} and \char`\"{} $\ast$servaddr \char`\"{}. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{_client_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char $\ast$$\ast$argv)
 \begin{DoxyCompactList}\small\item\em This function main function will return 0 if it run succefuly. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{_client_8c_a134f652c04c26f7f02ae52f96f5a3b67}\label{_client_8c_a134f652c04c26f7f02ae52f96f5a3b67}} 
+const int {\bfseries PROG\+\_\+\+BAR\+\_\+\+LENGTH} =30
+\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
@@ -89,17 +97,9 @@ printing an ANSI escape code -\/ the ones used to control tty behavior (clear sc
 \mbox{\texttt{ in}}  & {\em y} & is the row of the terminal. \\
 \hline
 \end{DoxyParams}
-\mbox{\Hypertarget{_client_8c_a477ef6829acc2f78a33eac0ff8b4e71f}\label{_client_8c_a477ef6829acc2f78a33eac0ff8b4e71f}} 
-\index{Client.c@{Client.c}!loadingBar@{loadingBar}}
-\index{loadingBar@{loadingBar}!Client.c@{Client.c}}
-\doxysubsubsection{\texorpdfstring{loadingBar()}{loadingBar()}}
-{\footnotesize\ttfamily void loading\+Bar (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-\begin{DoxyParams}{Parameters}
-{\em } & \\
-\hline
-\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
 \mbox{\Hypertarget{_client_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{_client_8c_a3c04138a5bfe5d72780bb7e82a18e627}} 
 \index{Client.c@{Client.c}!main@{main}}
 \index{main@{main}!Client.c@{Client.c}}
@@ -155,6 +155,24 @@ This function will try to connect to the server . It has two parameters \char`\"
 \mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server . \\
 \hline
 \mbox{\texttt{ in}}  & {\em $\ast$servaddr} & pointer to structure that contains the port number and address of the server . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{_client_8c_a4c9859b1b3f9af1ed005db04327c8eaf}\label{_client_8c_a4c9859b1b3f9af1ed005db04327c8eaf}} 
+\index{Client.c@{Client.c}!update\_bar@{update\_bar}}
+\index{update\_bar@{update\_bar}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{update\_bar()}{update\_bar()}}
+{\footnotesize\ttfamily void update\+\_\+bar (\begin{DoxyParamCaption}\item[{float}]{percent\+\_\+done }\end{DoxyParamCaption})}
+
+
+
+This function will show a progress bar that will be updated accordingly percentage of receiving a file, this is not 100\% accurate. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em percent\+\_\+done} & this is the percentage that will be usied to move progress bar and show it in shell \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['loadingbar_38',['loadingBar',['../_client_8c.html#a477ef6829acc2f78a33eac0ff8b4e71f',1,'Client.c']]]
+  ['main_38',['main',['../_client_8c.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;Client.c'],['../server_8c.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;server.c']]]
 ];

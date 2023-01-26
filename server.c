@@ -365,6 +365,8 @@ int main(int argc, char **argv)
 	
 	int change =1 ; //for transfer 
 	int *ptr_change =&change;
+	pid_t childpid;
+
 	check_arg_server(argc,argv);
 	// socket create and verification
 	ptr_sockfd = &sockfd;
@@ -395,20 +397,24 @@ int main(int argc, char **argv)
 		ptr_len = &len;
 		ptr_cli= &cli ;
 		socket_accept (ptr_connfd , ptr_sockfd , ptr_cli , ptr_len);
- 
-		//temp sol to stop server 
-		int b = share_msg(ptr_connfd,argv,cli,ptr_change);
-		if (!b)
+ 		if((childpid = fork()) == 0)
 		{
-			close(connfd);
-			break;
+			close(sockfd);
+			//temp sol to stop server 
+			int b = share_msg(ptr_connfd,argv,cli,ptr_change);
+			if (!b)
+			{
+				close(connfd);
+				break;
+			}
+			
+			sleep(1);	
+			//close(connfd);
 		}
-		close(connfd);
-        sleep(1);	
-		
 	}
 	// After chatting close the socket
-	close(sockfd);
+	//close(sockfd);
 	printf("[i] Server will Shutdown  \n");
+	close(connfd);
 	return 0;	
 }

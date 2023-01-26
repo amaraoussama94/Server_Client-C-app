@@ -1,0 +1,162 @@
+\hypertarget{_client_8c}{}\doxysection{/home/oussama.amara@sofia.\+local/\+Desktop/test-\/dev/\+Client.c File Reference}
+\label{_client_8c}\index{/home/oussama.amara"@sofia.local/Desktop/test-\/dev/Client.c@{/home/oussama.amara"@sofia.local/Desktop/test-\/dev/Client.c}}
+
+
+This is the client side, after connecting to the server, using the passed argument the client will send the spacial code to the server to get the needed info.  
+
+
+{\ttfamily \#include $<$arpa/inet.\+h$>$}\newline
+{\ttfamily \#include $<$netdb.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$strings.\+h$>$}\newline
+{\ttfamily \#include $<$sys/socket.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}Const.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}arg\+\_\+test.\+h\char`\"{}}\newline
+Include dependency graph for Client.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_client_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{_client_8c_a477ef6829acc2f78a33eac0ff8b4e71f}{loading\+Bar}} ()
+\item 
+void \mbox{\hyperlink{_client_8c_ae824443b3f661414ba1f2718e17fe97d}{gotoxy}} (int x, int y)
+\begin{DoxyCompactList}\small\item\em printing an ANSI escape code -\/ the ones used to control tty behavior (clear screen, move cursor, etc.) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_client_8c_ab641718fc407b4685141ab5201c5855f}{share\+\_\+msg}} (int $\ast$sockfd, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em The function uses the argument input to know what code should send to the server, if there\textquotesingle{}s no option (one of --list or -\/T) there\textquotesingle{}s no code to send. If --list passed as an argument the code is \char`\"{}bash\+\_\+\+\_\+list\char`\"{} will be sent to the server side. If -\/T is passed as an argument the code \char`\"{}bash\+\_\+\+\_\+transmit\char`\"{} will be sent to the server. It has two parameters \char`\"{} $\ast$ptr\+\_\+connfd  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_client_8c_a3f86fa435dab7d56c4bb21db0cd61298}{create\+\_\+scoket}} (int $\ast$sockfd)
+\begin{DoxyCompactList}\small\item\em This function will create the socket as TCP using IPV4. It has one parameter \char`\"{} $\ast$sockfd   \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_client_8c_a64a402fa2a78ac515fba13a471de42e7}{socket\+\_\+connect}} (struct sockaddr\+\_\+in $\ast$servaddr, int $\ast$sockfd)
+\begin{DoxyCompactList}\small\item\em This function will try to connect to the server . It has two parameters \char`\"{} $\ast$sockfd   \char`\"{} and \char`\"{} $\ast$servaddr \char`\"{}. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{_client_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em This function main function will return 0 if it run succefuly. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is the client side, after connecting to the server, using the passed argument the client will send the spacial code to the server to get the needed info. 
+
+\begin{DoxyAuthor}{Author}
+oussama amara 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+0.\+5 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+11/1/2022 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_client_8c_a3f86fa435dab7d56c4bb21db0cd61298}\label{_client_8c_a3f86fa435dab7d56c4bb21db0cd61298}} 
+\index{Client.c@{Client.c}!create\_scoket@{create\_scoket}}
+\index{create\_scoket@{create\_scoket}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{create\_scoket()}{create\_scoket()}}
+{\footnotesize\ttfamily void create\+\_\+scoket (\begin{DoxyParamCaption}\item[{int $\ast$}]{sockfd }\end{DoxyParamCaption})}
+
+
+
+This function will create the socket as TCP using IPV4. It has one parameter \char`\"{} $\ast$sockfd   \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{_client_8c_ae824443b3f661414ba1f2718e17fe97d}\label{_client_8c_ae824443b3f661414ba1f2718e17fe97d}} 
+\index{Client.c@{Client.c}!gotoxy@{gotoxy}}
+\index{gotoxy@{gotoxy}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{gotoxy()}{gotoxy()}}
+{\footnotesize\ttfamily void gotoxy (\begin{DoxyParamCaption}\item[{int}]{x,  }\item[{int}]{y }\end{DoxyParamCaption})}
+
+
+
+printing an ANSI escape code -\/ the ones used to control tty behavior (clear screen, move cursor, etc.) 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em x} & is the column of the terminal. \\
+\hline
+\mbox{\texttt{ in}}  & {\em y} & is the row of the terminal. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{_client_8c_a477ef6829acc2f78a33eac0ff8b4e71f}\label{_client_8c_a477ef6829acc2f78a33eac0ff8b4e71f}} 
+\index{Client.c@{Client.c}!loadingBar@{loadingBar}}
+\index{loadingBar@{loadingBar}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{loadingBar()}{loadingBar()}}
+{\footnotesize\ttfamily void loading\+Bar (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}{Parameters}
+{\em } & \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{_client_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{_client_8c_a3c04138a5bfe5d72780bb7e82a18e627}} 
+\index{Client.c@{Client.c}!main@{main}}
+\index{main@{main}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+
+
+This function main function will return 0 if it run succefuly. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em argc} & number of arguments passed to the server +1 (name of the script) . \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$$\ast$argv} & Pointer to pointer contain the name and the argument such as the path to the folder to share. . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+int 0 for success 
+\end{DoxyReturn}
+\mbox{\Hypertarget{_client_8c_ab641718fc407b4685141ab5201c5855f}\label{_client_8c_ab641718fc407b4685141ab5201c5855f}} 
+\index{Client.c@{Client.c}!share\_msg@{share\_msg}}
+\index{share\_msg@{share\_msg}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{share\_msg()}{share\_msg()}}
+{\footnotesize\ttfamily void share\+\_\+msg (\begin{DoxyParamCaption}\item[{int $\ast$}]{sockfd,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+
+
+The function uses the argument input to know what code should send to the server, if there\textquotesingle{}s no option (one of --list or -\/T) there\textquotesingle{}s no code to send. If --list passed as an argument the code is \char`\"{}bash\+\_\+\+\_\+list\char`\"{} will be sent to the server side. If -\/T is passed as an argument the code \char`\"{}bash\+\_\+\+\_\+transmit\char`\"{} will be sent to the server. It has two parameters \char`\"{} $\ast$ptr\+\_\+connfd  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \char`\"{}  $\ast$$\ast$argv \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$$\ast$argv} & Pointer to pointer contain the name and the argument such as the path to the folder to share. \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$ptr\+\_\+connfd} & Pointer serve as the channel between the client and the server, aka all transmitted data can be read using this variable . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{_client_8c_a64a402fa2a78ac515fba13a471de42e7}\label{_client_8c_a64a402fa2a78ac515fba13a471de42e7}} 
+\index{Client.c@{Client.c}!socket\_connect@{socket\_connect}}
+\index{socket\_connect@{socket\_connect}!Client.c@{Client.c}}
+\doxysubsubsection{\texorpdfstring{socket\_connect()}{socket\_connect()}}
+{\footnotesize\ttfamily void socket\+\_\+connect (\begin{DoxyParamCaption}\item[{struct sockaddr\+\_\+in $\ast$}]{servaddr,  }\item[{int $\ast$}]{sockfd }\end{DoxyParamCaption})}
+
+
+
+This function will try to connect to the server . It has two parameters \char`\"{} $\ast$sockfd   \char`\"{} and \char`\"{} $\ast$servaddr \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server . \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$servaddr} & pointer to structure that contains the port number and address of the server . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}

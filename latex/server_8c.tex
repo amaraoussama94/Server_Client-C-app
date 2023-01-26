@@ -1,0 +1,203 @@
+\hypertarget{server_8c}{}\doxysection{/home/oussama.amara@sofia.\+local/\+Desktop/test-\/dev/server.c File Reference}
+\label{server_8c}\index{/home/oussama.amara"@sofia.local/Desktop/test-\/dev/server.c@{/home/oussama.amara"@sofia.local/Desktop/test-\/dev/server.c}}
+
+
+This is the server side, it should run all time waiting for client to connect. The server has two arguments \char`\"{}-\/p\char`\"{} followed by the port number to use for this server then \char`\"{}-\/d\char`\"{} followed by the path of the directory to share.  
+
+
+{\ttfamily \#include $<$arpa/inet.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$netdb.\+h$>$}\newline
+{\ttfamily \#include $<$netinet/in.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$sys/socket.\+h$>$}\newline
+{\ttfamily \#include $<$sys/types.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include $<$errno.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}Const.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}arg\+\_\+test.\+h\char`\"{}}\newline
+Include dependency graph for server.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{server_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{server_8c_a9368c696bfda42cce823526a47747243}{Send\+File\+To\+Client}} (int $\ast$ptr\+\_\+connfd, char $\ast$fname, struct sockaddr\+\_\+in cli)
+\begin{DoxyCompactList}\small\item\em This function sends the file to the client we talk about text , video , image ,pdf ..files . It has three parameters \char`\"{} cli  \char`\"{} ,\char`\"{} fname \char`\"{} and \char`\"{}  connfd \char`\"{}. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{server_8c_a30ebcca7a5ee8fb298c279aaf92bab4a}{share\+\_\+msg}} (int $\ast$ptr\+\_\+connfd, char $\ast$$\ast$argv, struct sockaddr\+\_\+in cli, int $\ast$ptr\+\_\+change)
+\begin{DoxyCompactList}\small\item\em The function uses the code send by the client to know what it should do, if there\textquotesingle{}s no code send then the function returns 1. If the code is \char`\"{}list\char`\"{} this function will get the list of file and folder in the shared folder using the script the output will redirect to text file. If the code is \char`\"{}transmit\char`\"{} then the code uses the name of file, send by the client then start transmit it to the client. . It has two parameters \char`\"{} $\ast$ptr\+\_\+connfd  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{server_8c_a3f86fa435dab7d56c4bb21db0cd61298}{create\+\_\+scoket}} (int $\ast$sockfd)
+\begin{DoxyCompactList}\small\item\em This function will create the socket as TCP using IPV4. It has one parameter \char`\"{} $\ast$sockfd   \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{server_8c_a0a10bf8741d17ff5173419b94a0ff516}{socket\+\_\+bind}} (struct sockaddr\+\_\+in $\ast$servaddr, int $\ast$sockfd)
+\begin{DoxyCompactList}\small\item\em This function will bind the port number and the address. It has two parameters \char`\"{} servaddr  \char`\"{} and \char`\"{}  sockfd \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{server_8c_aa5b2ac860096ce0ecda783ae7ec98614}{socket\+\_\+listening}} (int $\ast$sockfd)
+\begin{DoxyCompactList}\small\item\em This function listens up to 5 connection requests. It has one parameter \char`\"{} sockfd  \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{server_8c_a8c6db7b22c08fdde92c75c35c1e3e6a4}{socket\+\_\+accept}} (int $\ast$connfd, int $\ast$sockfd, struct sockaddr\+\_\+in $\ast$cli, int $\ast$len)
+\begin{DoxyCompactList}\small\item\em This function accept client connection . It has for parameters \char`\"{} sockfd  \char`\"{} , \char`\"{} cli \char`\"{}and \char`\"{} ,\char`\"{} len \char`\"{} connfd \char`\"{}. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{server_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em This function main function will return 0 if it run succefuly. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is the server side, it should run all time waiting for client to connect. The server has two arguments \char`\"{}-\/p\char`\"{} followed by the port number to use for this server then \char`\"{}-\/d\char`\"{} followed by the path of the directory to share. 
+
+\begin{DoxyAuthor}{Author}
+oussama amara 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+0.\+5 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+11/1/2022 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{server_8c_a3f86fa435dab7d56c4bb21db0cd61298}\label{server_8c_a3f86fa435dab7d56c4bb21db0cd61298}} 
+\index{server.c@{server.c}!create\_scoket@{create\_scoket}}
+\index{create\_scoket@{create\_scoket}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{create\_scoket()}{create\_scoket()}}
+{\footnotesize\ttfamily void create\+\_\+scoket (\begin{DoxyParamCaption}\item[{int $\ast$}]{sockfd }\end{DoxyParamCaption})}
+
+
+
+This function will create the socket as TCP using IPV4. It has one parameter \char`\"{} $\ast$sockfd   \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{server_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{server_8c_a3c04138a5bfe5d72780bb7e82a18e627}} 
+\index{server.c@{server.c}!main@{main}}
+\index{main@{main}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+
+
+This function main function will return 0 if it run succefuly. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em argc} & number of arguments passed to the server +1 (name of the script) . \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$$\ast$argv} & Pointer to pointer contain the name and the argument such as the path to the folder to share. . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+int 0 for success 
+\end{DoxyReturn}
+\mbox{\Hypertarget{server_8c_a9368c696bfda42cce823526a47747243}\label{server_8c_a9368c696bfda42cce823526a47747243}} 
+\index{server.c@{server.c}!SendFileToClient@{SendFileToClient}}
+\index{SendFileToClient@{SendFileToClient}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{SendFileToClient()}{SendFileToClient()}}
+{\footnotesize\ttfamily void Send\+File\+To\+Client (\begin{DoxyParamCaption}\item[{int $\ast$}]{ptr\+\_\+connfd,  }\item[{char $\ast$}]{fname,  }\item[{struct sockaddr\+\_\+in}]{cli }\end{DoxyParamCaption})}
+
+
+
+This function sends the file to the client we talk about text , video , image ,pdf ..files . It has three parameters \char`\"{} cli  \char`\"{} ,\char`\"{} fname \char`\"{} and \char`\"{}  connfd \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$fname} & pointer to the file name that we will send to the client . \\
+\hline
+\mbox{\texttt{ in}}  & {\em cli} & client struct , we need it to get the Ipadress of the client who connect to our server \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$connfd} & Pointer serve as the channel between the client and the server, aka all transmitted data can be read using this variable . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{server_8c_a30ebcca7a5ee8fb298c279aaf92bab4a}\label{server_8c_a30ebcca7a5ee8fb298c279aaf92bab4a}} 
+\index{server.c@{server.c}!share\_msg@{share\_msg}}
+\index{share\_msg@{share\_msg}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{share\_msg()}{share\_msg()}}
+{\footnotesize\ttfamily int share\+\_\+msg (\begin{DoxyParamCaption}\item[{int $\ast$}]{ptr\+\_\+connfd,  }\item[{char $\ast$$\ast$}]{argv,  }\item[{struct sockaddr\+\_\+in}]{cli,  }\item[{int $\ast$}]{ptr\+\_\+change }\end{DoxyParamCaption})}
+
+
+
+The function uses the code send by the client to know what it should do, if there\textquotesingle{}s no code send then the function returns 1. If the code is \char`\"{}list\char`\"{} this function will get the list of file and folder in the shared folder using the script the output will redirect to text file. If the code is \char`\"{}transmit\char`\"{} then the code uses the name of file, send by the client then start transmit it to the client. . It has two parameters \char`\"{} $\ast$ptr\+\_\+connfd  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \char`\"{}  $\ast$$\ast$argv \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$$\ast$argv} & Pointer to pointer contain the name and the argument such as the path to the folder to share. \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$ptr\+\_\+connfd} & Pointer serve as the channel between the client and the server, aka all transmitted data can be read using this variable . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{server_8c_a8c6db7b22c08fdde92c75c35c1e3e6a4}\label{server_8c_a8c6db7b22c08fdde92c75c35c1e3e6a4}} 
+\index{server.c@{server.c}!socket\_accept@{socket\_accept}}
+\index{socket\_accept@{socket\_accept}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{socket\_accept()}{socket\_accept()}}
+{\footnotesize\ttfamily void socket\+\_\+accept (\begin{DoxyParamCaption}\item[{int $\ast$}]{connfd,  }\item[{int $\ast$}]{sockfd,  }\item[{struct sockaddr\+\_\+in $\ast$}]{cli,  }\item[{int $\ast$}]{len }\end{DoxyParamCaption})}
+
+
+
+This function accept client connection . It has for parameters \char`\"{} sockfd  \char`\"{} , \char`\"{} cli \char`\"{}and \char`\"{} ,\char`\"{} len \char`\"{} connfd \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$cli} & client structure which contains all info about the client . \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$len} & pointer length of the client structure . \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server ~\newline
+ \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$connfd} & Pointer serve as the channel between the client and the server, aka all transmitted data can be read using this variable . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{server_8c_a0a10bf8741d17ff5173419b94a0ff516}\label{server_8c_a0a10bf8741d17ff5173419b94a0ff516}} 
+\index{server.c@{server.c}!socket\_bind@{socket\_bind}}
+\index{socket\_bind@{socket\_bind}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{socket\_bind()}{socket\_bind()}}
+{\footnotesize\ttfamily void socket\+\_\+bind (\begin{DoxyParamCaption}\item[{struct sockaddr\+\_\+in $\ast$}]{servaddr,  }\item[{int $\ast$}]{sockfd }\end{DoxyParamCaption})}
+
+
+
+This function will bind the port number and the address. It has two parameters \char`\"{} servaddr  \char`\"{} and \char`\"{}  sockfd \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$servaddr} & pointer to structure that contains the port number and address of the server . \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{server_8c_aa5b2ac860096ce0ecda783ae7ec98614}\label{server_8c_aa5b2ac860096ce0ecda783ae7ec98614}} 
+\index{server.c@{server.c}!socket\_listening@{socket\_listening}}
+\index{socket\_listening@{socket\_listening}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{socket\_listening()}{socket\_listening()}}
+{\footnotesize\ttfamily void socket\+\_\+listening (\begin{DoxyParamCaption}\item[{int $\ast$}]{sockfd }\end{DoxyParamCaption})}
+
+
+
+This function listens up to 5 connection requests. It has one parameter \char`\"{} sockfd  \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$sockfd} & Pointer container of port number and address of the server . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}

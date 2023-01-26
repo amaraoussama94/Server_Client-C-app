@@ -1,0 +1,180 @@
+\hypertarget{arg__test_8h}{}\doxysection{/home/oussama.amara@sofia.\+local/\+Desktop/test-\/dev/arg\+\_\+test.h File Reference}
+\label{arg__test_8h}\index{/home/oussama.amara"@sofia.local/Desktop/test-\/dev/arg\_test.h@{/home/oussama.amara"@sofia.local/Desktop/test-\/dev/arg\_test.h}}
+
+
+This is the header file containing all the function declarations to verify the argument for the server and the client.  
+
+
+{\ttfamily \#include $<$ctype.\+h$>$}\newline
+{\ttfamily \#include $<$arpa/inet.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$netdb.\+h$>$}\newline
+{\ttfamily \#include $<$netinet/in.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$sys/socket.\+h$>$}\newline
+{\ttfamily \#include $<$sys/types.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}Const.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$errno.\+h$>$}\newline
+{\ttfamily \#include $<$dirent.\+h$>$}\newline
+Include dependency graph for arg\+\_\+test.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{arg__test_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{arg__test_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{arg__test_8h_ad2ffd7dee587e728daf141ffec92e934}\label{arg__test_8h_ad2ffd7dee587e728daf141ffec92e934}} 
+\+\_\+\+\_\+\+BEGIN\+\_\+\+DECLS void {\bfseries check\+\_\+dir} (char $\ast$$\ast$argv)
+\item 
+int \mbox{\hyperlink{arg__test_8h_a2bd854e009e6ac552d6f84d1a6944199}{is\+Number}} (char number\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em This feature checks if the port number is availed integer or not, it has a parameter \char`\"{}number \mbox{[}$\,$\mbox{]} \char`\"{}. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{arg__test_8h_a16dc759f381309da39c9a149ff49b8ee}{isvalidport}} (int a)
+\begin{DoxyCompactList}\small\item\em THis function check that the port number is higher than 1024 (for Linux system). It has one parameter \char`\"{} a  \char`\"{} . \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{arg__test_8h_a34e7af0c9aa571ae979ab3797bc808de}{is\+Valid\+Ip\+Address}} (char $\ast$ip\+Address)
+\begin{DoxyCompactList}\small\item\em This function checks if the passed address of the client is a valid IP address. It has one parameter \char`\"{} $\ast$ip\+Address \char`\"{}. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{arg__test_8h_a74854f0d4143fceae6eb3e6b7c8c2f96}{validate\+IP4\+Dotted}} (const char $\ast$s)
+\begin{DoxyCompactList}\small\item\em This function checks if the passed address of the client is a valid IP address but manuelle (just back up solution not used ). It has one parameter \char`\"{} $\ast$s \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{arg__test_8h_ab58ab28739958ae9aff0bb8ff1e8d322}{check\+\_\+arg\+\_\+client}} (int argc, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em This function will check all the passed argument to the client, will check the order and option passed if there re valid one or no and the argument for each option using some function. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{arg__test_8h_a192856e12a4d9023f48a0032121e1915}{check\+\_\+arg\+\_\+server}} (int argc, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em This function will check all the passed argument to the server , will check the order and option passed if there re valid one or no and the argument for each option using some function. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is the header file containing all the function declarations to verify the argument for the server and the client. 
+
+\begin{DoxyAuthor}{Author}
+oussama amara 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+0.\+5 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+11/1/2022 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{arg__test_8h_ab58ab28739958ae9aff0bb8ff1e8d322}\label{arg__test_8h_ab58ab28739958ae9aff0bb8ff1e8d322}} 
+\index{arg\_test.h@{arg\_test.h}!check\_arg\_client@{check\_arg\_client}}
+\index{check\_arg\_client@{check\_arg\_client}!arg\_test.h@{arg\_test.h}}
+\doxysubsubsection{\texorpdfstring{check\_arg\_client()}{check\_arg\_client()}}
+{\footnotesize\ttfamily void check\+\_\+arg\+\_\+client (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+
+
+This function will check all the passed argument to the client, will check the order and option passed if there re valid one or no and the argument for each option using some function. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em Argc} & its contain a number of passed arguments to client +1 (name of the file). \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$$\ast$argv} & Pointer to pointer contains the name and the argument such as the path of the folder to share. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{arg__test_8h_a192856e12a4d9023f48a0032121e1915}\label{arg__test_8h_a192856e12a4d9023f48a0032121e1915}} 
+\index{arg\_test.h@{arg\_test.h}!check\_arg\_server@{check\_arg\_server}}
+\index{check\_arg\_server@{check\_arg\_server}!arg\_test.h@{arg\_test.h}}
+\doxysubsubsection{\texorpdfstring{check\_arg\_server()}{check\_arg\_server()}}
+{\footnotesize\ttfamily void check\+\_\+arg\+\_\+server (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+
+
+This function will check all the passed argument to the server , will check the order and option passed if there re valid one or no and the argument for each option using some function. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em Argc} & its contain a number of passed arguments to server +1 (name of the file). \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$$\ast$argv} & Pointer to pointer contains the name and the argument such as the path of the folder to share. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+\mbox{\Hypertarget{arg__test_8h_a2bd854e009e6ac552d6f84d1a6944199}\label{arg__test_8h_a2bd854e009e6ac552d6f84d1a6944199}} 
+\index{arg\_test.h@{arg\_test.h}!isNumber@{isNumber}}
+\index{isNumber@{isNumber}!arg\_test.h@{arg\_test.h}}
+\doxysubsubsection{\texorpdfstring{isNumber()}{isNumber()}}
+{\footnotesize\ttfamily int is\+Number (\begin{DoxyParamCaption}\item[{char}]{number\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})}
+
+
+
+This feature checks if the port number is availed integer or not, it has a parameter \char`\"{}number \mbox{[}$\,$\mbox{]} \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em Table} & number \mbox{[}\mbox{]} which includes the port number. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+int will be 0 or 1 , as a boolien . 
+\end{DoxyReturn}
+\mbox{\Hypertarget{arg__test_8h_a34e7af0c9aa571ae979ab3797bc808de}\label{arg__test_8h_a34e7af0c9aa571ae979ab3797bc808de}} 
+\index{arg\_test.h@{arg\_test.h}!isValidIpAddress@{isValidIpAddress}}
+\index{isValidIpAddress@{isValidIpAddress}!arg\_test.h@{arg\_test.h}}
+\doxysubsubsection{\texorpdfstring{isValidIpAddress()}{isValidIpAddress()}}
+{\footnotesize\ttfamily int is\+Valid\+Ip\+Address (\begin{DoxyParamCaption}\item[{char $\ast$}]{ip\+Address }\end{DoxyParamCaption})}
+
+
+
+This function checks if the passed address of the client is a valid IP address. It has one parameter \char`\"{} $\ast$ip\+Address \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$ip\+Address} & A pointer to the buffer that conteient the IP address . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+int Returns 0 if the IP address is correct. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{arg__test_8h_a16dc759f381309da39c9a149ff49b8ee}\label{arg__test_8h_a16dc759f381309da39c9a149ff49b8ee}} 
+\index{arg\_test.h@{arg\_test.h}!isvalidport@{isvalidport}}
+\index{isvalidport@{isvalidport}!arg\_test.h@{arg\_test.h}}
+\doxysubsubsection{\texorpdfstring{isvalidport()}{isvalidport()}}
+{\footnotesize\ttfamily int isvalidport (\begin{DoxyParamCaption}\item[{int}]{a }\end{DoxyParamCaption})}
+
+
+
+THis function check that the port number is higher than 1024 (for Linux system). It has one parameter \char`\"{} a  \char`\"{} . 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em a} & integer is the port number . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+int Will return an error code if the port is less than 1024 
+\end{DoxyReturn}
+\mbox{\Hypertarget{arg__test_8h_a74854f0d4143fceae6eb3e6b7c8c2f96}\label{arg__test_8h_a74854f0d4143fceae6eb3e6b7c8c2f96}} 
+\index{arg\_test.h@{arg\_test.h}!validateIP4Dotted@{validateIP4Dotted}}
+\index{validateIP4Dotted@{validateIP4Dotted}!arg\_test.h@{arg\_test.h}}
+\doxysubsubsection{\texorpdfstring{validateIP4Dotted()}{validateIP4Dotted()}}
+{\footnotesize\ttfamily int validate\+IP4\+Dotted (\begin{DoxyParamCaption}\item[{const char $\ast$}]{s }\end{DoxyParamCaption})}
+
+
+
+This function checks if the passed address of the client is a valid IP address but manuelle (just back up solution not used ). It has one parameter \char`\"{} $\ast$s \char`\"{}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$s} & A pointer to the buffer that conteient the IP address . \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+int Returns 1 if the IP address is correct. 
+\end{DoxyReturn}

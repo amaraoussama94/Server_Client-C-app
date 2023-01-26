@@ -20,6 +20,7 @@
 // for mkdir function 
 #include <sys/stat.h>
 #include <sys/types.h>
+const int PROG_BAR_LENGTH =30 ;//30 caractere
 /**
  * @file client.c
  * @brief  This is the client side, after connecting to the server, using the passed argument the client will send the spacial code to the server to get the needed info.
@@ -28,14 +29,16 @@
  * @date 11/1/2022
 */
 
+
+
 /**
- * @brief 
- * @param
- * @param
- **/
-// Function to creating loading bar
-//bar  const
-const int PROG_BAR_LENGTH =30 ;//30 caractere
+ * @brief This function will show  a progress bar that will be updated accordingly  percentage of  receiving a file,  this is not 100% accurate.
+ * @param[in] percent_done this is the  percentage that will be usied to  move  progress bar  and  show it in shell
+ * @return void
+ */
+
+
+
 
 void update_bar(float  percent_done  )
 {	 
@@ -65,7 +68,8 @@ void update_bar(float  percent_done  )
  * @brief printing an ANSI escape code - the ones used to control tty behavior (clear screen, move cursor, etc.)
  * @param[in] x is the column of the terminal.
  * @param[in] y is the row of the terminal.
- **/
+ * @return void
+ */
 void gotoxy(int x,int y)
 {
 	//The first character interpreted is 0x1B, which is equivalent to 27 in decimals, 

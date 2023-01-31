@@ -138,9 +138,10 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		sprintf(msg,"%d",num_file);
 		write(*sockfd, msg, sizeof(msg));
 		//printf ("num = %s\n",msg);
-
+		//send file name to server 
 		bzero(msg, sizeof(msg));
 		strcat(msg,argv[6]);
+		printf(" the  buff is = %s",msg);
 		write(*sockfd, msg, sizeof(msg));
 		//check if the file name exist or no
 		bzero(msg, sizeof(msg));

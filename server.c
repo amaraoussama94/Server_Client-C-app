@@ -2,9 +2,9 @@
 // This  is  the  code for the  server                                       
 // ./Server -p Port_NBR  -d  Folder_Path                                       
 // @Oussama AMARA                                                              
-// Last modification 26/1/2023                                                 
+// Last modification 31/1/2023                                                 
 // version 0.5                                                                
-// @open issue : nan
+// @open issue : +color for  printf
 
 /**
  * @file server.c
@@ -25,7 +25,27 @@
 #include <errno.h>
 #include "Const.h"
 #include "arg_test.h"
+#include <time.h>//get time and date for log file 
+#include <string.h>//
 
+
+void  get_time()
+{
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+
+	int year = 0, month  = 0, day  = 0, h = 0,mn = 0,sec  = 0;
+
+    year = tm.tm_year + 1900 ;
+	month = tm.tm_mon + 1;
+	day = tm.tm_mday;
+	h=tm.tm_hour ;
+	mn =tm.tm_min;
+	sec=tm.tm_sec;
+
+	printf("now: %d-%02d-%02d %02d:%02d:%02d   \n",year,month,day,h, mn, sec);
+
+}
 /**
  * @brief This  function sends the file to the client we  talk about text , video , image ,pdf ..files  . It has three  parameters  " cli  " ," fname " and  "  connfd ".
  * @param[in]  *fname  pointer to the  file  name that  we  will send to the client .
@@ -196,7 +216,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
         if (filePointer == NULL)
         {
 			printf("\033[0;31m");
-            printf("[-]Error file missing\n");
+            printf("[-]Error can t find list of file to share \n");
 			printf("\033[0m");
             exit(1);
         }

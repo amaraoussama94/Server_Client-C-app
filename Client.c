@@ -111,16 +111,24 @@ void share_msg(int *sockfd,char ** argv, int argc)
 	{
 		//read receive msg from server
 		read(*sockfd, msg, sizeof(msg));
+		read(*sockfd, msg, sizeof(msg));
+		if(!strcmp(msg,"ERRORFILE1"))
+		{
+			printf("[-] Error server can t list file \n ");
+			exit(1);
+		}
 		printf("[i]This is the list of file and  folder shared by the server : \n These are the directories  : \n" );
-		while(1)
+		/*while(1)
 		{
 			read(*sockfd, msg, sizeof(msg));
+			
 			if(!strncmp(msg, "#", 1) )
 			{
 				break;
+
 			}
 			printf("%s \n ",msg);
-		} 
+		} */
 	}
 	else if (strcmp("-T", argv[5]) == 0) 
 	{

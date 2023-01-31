@@ -166,7 +166,10 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 				printf("\033[0;31m");
 				printf("[-]Error can t find list of file to share \n");
 				printf("\033[0m");
-				exit(-1);
+				bzero(buff,sizeof(buff));
+				strcat(buff,"ERRORFILE1");
+				write(*ptr_connfd, buff, sizeof(buff));
+				exit(1);
 			}
 		fseek(filePointer, 0, SEEK_SET);
 		while(fgets(buff, MAX, filePointer)) 

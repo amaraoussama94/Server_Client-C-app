@@ -1,7 +1,7 @@
  
 //  This  is  the  code for argument   shell test                              
 // @Oussama AMARA                                                              
-// Last modification  26/01/2023                                                
+// Last modification  30/01/2023                                                
 // version 1.0                                                                 
  // @open issue : nan
 
@@ -29,7 +29,7 @@ void check_dir_serv (char **argv)
 	if (dir) 
 	{
 		printf("\033[0;32m");
-    	printf("[+] directory open sucess \n");
+    	printf("[+]The directory  has been open successfully\n");
 		printf("\033[0m");
     	closedir(dir);
 	} 
@@ -170,11 +170,11 @@ int validateIP4Dotted(const char *s)
 */
 void check_arg_client(int argc, char **argv  )
 {
-	if ( argc < 5 || argc > 7)
+	if ( argc < 5 )//|| argc > 7
 	{
 		printf("[i]./Client -ip @IP -p Port_NBR \nwith two option\n");
 		printf("[i]./Client -ip @IP -p Port_NBR --list\n");
-		printf("[i]./Client -ip @IP -p Port_NBR -T (for transfer file)  file_name_to_transf\n");
+		printf("[i]./Client -ip @IP -p Port_NBR -T (for transfer file)  file_name_to_transf(1)  file_name_to_transf(2) .. \n");
 		exit(1);
 
 	}
@@ -207,16 +207,26 @@ void check_arg_client(int argc, char **argv  )
 			printf("[-]please try again available option are -ip , -p  and \"--list\" \"-T\" only...\n..\n");
 			printf("\033[0m");
 			printf("[i]./Client -ip @IP -p Port_NBR --list\n");
-			printf("[i]./Client -ip @IP -p Port_NBR -T (for transfer file)  file_name_to_transf\n");
+			printf("[i]./Client -ip @IP -p Port_NBR -T (for transfer file)  file_name_to_transf(1)  file_name_to_transf(2) .. \n");
 			exit(1);
 
 		}
 
 		if (strcmp("-T", argv[5]) == 0) 
 		{
-			if  ( argc < 7)
+			if  ( argc < 7)/*******************************/
 			{
-				printf("[i]./Client -ip @IP -p Port_NBR -T (for transfer file)  file_name_to_transf\n");
+				printf("[i]./Client -ip @IP -p Port_NBR -T (for transfer file)  file_name_to_transf(1)  file_name_to_transf(2) ..  \n");
+				exit(1);
+
+			}
+
+		}
+		if (strcmp("--list", argv[5]) == 0) /**************************/
+		{
+			if  ( argc > 6)
+			{
+				printf("[i]./Client -ip @IP -p Port_NBR --list\n");
 				exit(1);
 
 			}

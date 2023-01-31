@@ -3,7 +3,6 @@
 output=~/Desktop/github_tes_dev/stdout.txt
 rm $output
 cd $1
-pwd
 echo -These are the directories > $output
 #ls -d $1*/ >> $output
 ls -l | grep ^d |awk '{print""substr($0,index($0,$11))}' >> $output

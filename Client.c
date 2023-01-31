@@ -118,7 +118,7 @@ void share_msg(int *sockfd,char ** argv, int argc)
 			exit(1);
 		}
 		printf("[i]This is the list of file and  folder shared by the server : \n These are the directories  : \n" );
-		/*while(1)
+		while(1)
 		{
 			read(*sockfd, msg, sizeof(msg));
 			
@@ -128,7 +128,7 @@ void share_msg(int *sockfd,char ** argv, int argc)
 
 			}
 			printf("%s \n ",msg);
-		} */
+		} 
 	}
 	else if (strcmp("-T", argv[5]) == 0) 
 	{

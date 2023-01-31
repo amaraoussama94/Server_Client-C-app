@@ -5,7 +5,7 @@
 // @Oussama AMARA                                                              
 // Last modification 26/1/2023                                                 
 // version 0.5                                                                 
-// @open issue : nan
+// @open issue :+ for less then 1kb file the  loading  file  bave  go so wired 
 
 #include <arpa/inet.h> // inet_addr()/
 #include <netdb.h>

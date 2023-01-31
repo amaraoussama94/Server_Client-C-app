@@ -186,9 +186,9 @@ void share_msg(int *sockfd,char ** argv)
 
 		if(bytesReceived < 0)
 		{
-			printf("\n Read Error \n");
+			printf("[-]Error  can t  create file %s to recive it  \n",argv[6]);
 		}
-		printf("[i] file transmission is done you can check the file    \n");
+		printf("[i] file transmission %s is done you can check transfer folder   \n",argv[6]);
 
 	}
 			

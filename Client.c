@@ -195,6 +195,7 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		{
 			printf("[-]Error  can t  create file %s to recive it  \n",argv[6]);
 		}
+		fclose(filetransferPointer);
 		printf("[i] file transmission %s is done you can check transfer folder   \n",argv[6]);
 
 	}

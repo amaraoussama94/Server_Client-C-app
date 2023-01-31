@@ -200,8 +200,16 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 	}
 	else if (strcmp("bash_Transf", buff) == 0) 
 	{
+		int num_file ; 
+		//get numlber of  file to send 
 		bzero(buff, MAX);
 		read(*ptr_connfd, buff, sizeof(buff));
+		sscanf(buff,"%d",&num_file);
+		printf("[i] the  number of file to send to the client is %d\n",num_file);
+		//get file name 
+		bzero(buff, MAX);
+		read(*ptr_connfd, buff, sizeof(buff));
+		printf("the file name is %s \n",buff);
 		/*********************************************///must change dir if it run 2nd it  crush 
 		char path[100] ;
 		//get the current  dir path  

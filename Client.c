@@ -88,7 +88,7 @@ void gotoxy(int x,int y)
  * 
 */
 
-void share_msg(int *sockfd,char ** argv)
+void share_msg(int *sockfd,char ** argv, int argc)
 {
 	char buff[MAX]="bash";
 	char msg[MAX];
@@ -124,6 +124,13 @@ void share_msg(int *sockfd,char ** argv)
 	}
 	else if (strcmp("-T", argv[5]) == 0) 
 	{
+		//get number of file to receive from server 
+		int num_file = argc-6;
+		bzero(msg, sizeof(msg));
+		sprintf(msg,"%d",num_file);
+		write(*sockfd, msg, sizeof(msg));
+		//printf ("num = %s\n",msg);
+
 		bzero(msg, sizeof(msg));
 		strcat(msg,argv[6]);
 		write(*sockfd, msg, sizeof(msg));
@@ -282,7 +289,7 @@ int main(int argc, char **argv)
   	// run the lisst or transfer  option 
 	if( argc > 5)
 	{
-		share_msg(ptr_sockfd,argv);
+		share_msg(ptr_sockfd,argv, argc);
 	}
 		
 	// close the socket

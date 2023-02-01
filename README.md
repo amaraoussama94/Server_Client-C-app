@@ -115,6 +115,10 @@ Else  try "-T  FILE_NAME": T stand for transfer file, so  you need to pass the n
 
 This is the first part  of the project .(done  waiting  for review )
 
+open issue  see start of .c file 
+
+PS: please check the script and change  the output path to the  current path where the project  is located 
+
 ## Useful link 
 -[socket-programming-cc](https://www.geeksforgeeks.org/socket-programming-cc/)
 

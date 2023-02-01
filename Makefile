@@ -1,8 +1,8 @@
 
 # Application 
-app :server.o   Client.o   arg_test.o
-	gcc server.o arg_test.o  -o Server 
-	gcc Client.o arg_test.o  -o Client  
+app :server.o   Client.o   arg_test.o logger.o
+	gcc server.o logger.o arg_test.o  -o Server 
+	gcc Client.o  logger.o arg_test.o  -o Client  
 	 
 #serveur
 
@@ -18,6 +18,12 @@ Client.o:Client.c
 
 arg_test.o:arg_test.c
 	gcc -c arg_test.c
+
+# create log  file 
+#Client
+
+logger.o:logger.c
+	gcc -c logger.c
 
 clean:
 #cleanup all object file

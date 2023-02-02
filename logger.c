@@ -140,23 +140,22 @@ void logger_set_log_level(const int level)
  */
 int logger_set_log_file(const char* filename ,   char* path)
 {
-    char local [50];
+    char local [100];
     bzero(local,sizeof(local));
     strcat(local,path);
     cleanup_internal();
-    strcat(local,"/");
     strcat(local,filename);
     log_global_set.out_file =NULL;
+   // printf(" the file path  is %s \n",local);
     log_global_set.out_file = fopen(local, "a+");
 
     if (log_global_set.out_file == NULL) {
         log_error("Failed to open file %s error %s", filename, strerror(errno));
         printf("[-]Error can't find log file \n");
-        return -1;
+        return 1;
     }
 
     log_global_set.logger_func = print_to_file;
-
     return 0;
 }
 

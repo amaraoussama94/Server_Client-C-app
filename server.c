@@ -394,8 +394,7 @@ int main(int argc, char **argv)
 	struct sockaddr_in *ptr_servaddr , *ptr_cli;
 	char folder_path[100] ;
 	const char log_file_name [50]= "log.txt";
-	int change =1 ; //for transfer 
-	int *ptr_change =&change;
+	 
 
 	//get the current  dir path  
 	bzero(folder_path,sizeof(folder_path));

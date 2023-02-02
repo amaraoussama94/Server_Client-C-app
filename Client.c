@@ -3,7 +3,7 @@
 //   ./Client -ip @IP -p Port_NBR  --list (option)                             
 //   ./Client -ip @IP -p Port_NBR  --T (option) path(optional with T)          
 // @Oussama AMARA                                                              
-// Last modification 1/2/2023                                                 
+// Last modification 2/2/2023                                                 
 // version 0.5                                                                 
 // @open issue :+ for less then 1kb file the  loading  file  bave  go so wired 
 
@@ -20,6 +20,9 @@
 // for mkdir function 
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include"logger.h"
+
 const int PROG_BAR_LENGTH =30 ;//30 caractere
 /**
  * @file client.c
@@ -114,10 +117,14 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		read(*sockfd, msg, sizeof(msg));
 		if(!strcmp(msg,"ERRORFILE1"))
 		{
+			printf("\033[0;31m");
 			printf("[-] Error server can t list file \n ");
+			printf("\033[0m");
+			log_error("Error server can t list file");
 			exit(1);
 		}
 		printf("[i]This is the list of file and  folder shared by the server : \n These are the directories  : \n" );
+		log_status(" liste the content of the  shared folder");
 		while(1)
 		{
 			read(*sockfd, msg, sizeof(msg));
@@ -149,6 +156,7 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		if (strcmp(msg,"file_error")==0)
 		{	printf("\033[0;31m");
 			printf("[-]Please try  again ,maybe try --list first then try again ,or maybe no file has this name \n" );
+			log_warning("You try to get  a file that not mentioned in the list");
 			printf("\033[0m");
 			exit(1);
 		}	
@@ -160,11 +168,12 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		chdir("transfer");
 		//system("cd test/");
 		//system("pwd");
-		filetransferPointer = fopen(argv[6] , "ab");
+		filetransferPointer = fopen(argv[6] , "a+");
 		if (filetransferPointer == NULL)
 		{
 			printf("\033[0;31m");
-			printf("[-]Error  can t  create file for transfer  \n");
+			printf("[-]Error  can t  create file %s for transfer  \n",argv[6]);
+			log_error("Error  can t  create file %s for transfer ",argv[6]);
 			printf("\033[0m");
 			exit(-1);
 		}
@@ -174,7 +183,8 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		read(*sockfd, size, sizeof(size));
 		//convert data to  long double
 		sscanf(size, "%Lf", &size_file);
-		printf("[i]Size of the file %Lf Kb \n",size_file);
+		printf("[i]Size of the file %s %Lf Kb \n",argv[6],size_file);
+		log_status("Size of the file %s %Lf Kb ",argv[6],size_file);
 		/*************************************************/
 		
 		/* Receive data in chunks of 256 bytes */
@@ -202,10 +212,16 @@ void share_msg(int *sockfd,char ** argv, int argc)
 
 		if(bytesReceived < 0)
 		{
+			printf("\033[0;31m");
 			printf("[-]Error  can t  create file %s to recive it  \n",argv[6]);
+			printf("\033[0m");
+			log_error("Error  can t  create file %s to recive it  ");
 		}
 		fclose(filetransferPointer);
+		printf("\033[0;32m");
 		printf("[i] file transmission %s is done you can check transfer folder   \n",argv[6]);
+		printf("\033[0m");
+		log_status("file transmission %s is done you can check transfer folder   ",argv[6]);
 
 	}
 			
@@ -224,12 +240,14 @@ void create_scoket(int * sockfd)
     {
 		printf("\033[0;31m");
 		perror("[-]socket creation failed...\n");
+		log_error("socket creation failed...");
 		printf("\033[0;31m");
 		exit(1);
 	}
 	else
 	{	printf("\033[0;32m");
-		printf("[+]Socket successfully created..\n"); 
+		printf("[+]Socket successfully created..\n");
+		log_status("Socket successfully created.."); 
 		printf("\033[0m");
 	}
 	
@@ -251,13 +269,15 @@ void socket_connect(struct sockaddr_in *servaddr ,int * sockfd)
     {
 		printf("\033[0;31m");
 		perror("[-]connection with the server failed...\n");
+		log_error("connection with the server failed...");
 		printf("\033[0m");
 		exit(1);
 	}
 	else
 	{
 		printf("\033[0;32m");
-		printf("[+]connected to the server..\n");
+		printf("[+]connected to the server.. :%s:%d \n",inet_ntoa(servaddr->sin_addr),ntohs(servaddr->sin_port));
+		log_status("connected to the server.. :%s:%d",inet_ntoa(servaddr->sin_addr),ntohs(servaddr->sin_port));
 		printf("\033[0m");
 	}
 
@@ -277,6 +297,21 @@ int main(int argc, char **argv)
 	int *ptr_sockfd;
 	struct sockaddr_in servaddr, client_addr;
 	struct sockaddr_in *ptr_servaddr;
+
+	char folder_path[250] ;
+	const char log_file_name [50]= "log.txt";//same as  server  for now
+
+
+	//get the current  dir path  
+	bzero(folder_path,sizeof(folder_path));
+	getcwd(folder_path, sizeof(folder_path)) ;
+	//printf(" the path is %s \n",folder_path);
+ 
+	// reset all to log  file
+	logger_reset_state();
+	// oen file for create log 
+	logger_set_log_file(log_file_name,folder_path);
+
 
 	//check argument 
 	check_arg_client(argc,argv);
@@ -304,4 +339,8 @@ int main(int argc, char **argv)
 		
 	// close the socket
 	close(sockfd);
+	printf("[i] Connection with the server is closed \n");
+	log_warning("Connection with the server is closed");
+	logger_reset_state();
+	return 0 ;
 }

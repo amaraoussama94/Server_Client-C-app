@@ -2,7 +2,7 @@
 // This  is  the  code for the  server                                       
 // ./Server -p Port_NBR  -d  Folder_Path                                       
 // @Oussama AMARA                                                              
-// Last modification 31/1/2023                                                 
+// Last modification 1/2/2023                                                 
 // version 0.5                                                                
 // @open issue : +color for  printf
 
@@ -25,27 +25,12 @@
 #include <errno.h>
 #include "Const.h"
 #include "arg_test.h"
-#include <time.h>//get time and date for log file 
+
 #include <string.h>//
 
+#include "logger.h"//for log file 
 
-void  get_time()
-{
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
 
-	int year = 0, month  = 0, day  = 0, h = 0,mn = 0,sec  = 0;
-
-    year = tm.tm_year + 1900 ;
-	month = tm.tm_mon + 1;
-	day = tm.tm_mday;
-	h=tm.tm_hour ;
-	mn =tm.tm_min;
-	sec=tm.tm_sec;
-
-	printf("now: %d-%02d-%02d %02d:%02d:%02d   \n",year,month,day,h, mn, sec);
-
-}
 /**
  * @brief This  function sends the file to the client we  talk about text , video , image ,pdf ..files  . It has three  parameters  " cli  " ," fname " and  "  connfd ".
  * @param[in]  *fname  pointer to the  file  name that  we  will send to the client .
@@ -57,16 +42,19 @@ void  get_time()
 //void* SendFileToClient(int *arg)
 void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
 {
+	
     //int connfd=(int)*arg;
     printf("[i]Connection accepted and id: %d\n",*ptr_connfd);
-    printf("[i]Connected to Clent: %s:%d\n",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
-    write(*ptr_connfd, fname,256);
+    printf("[i]Connected to Client: %s:%d\n",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
+    log_status("Connected to Client: %s:%d",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
+	write(*ptr_connfd, fname,256);
 
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
     {
 		printf("\033[0;31m");
-        printf("[-]File for transfer  open error\n");
+        printf("[-]Can't open file %s  for transfer \n",fname);
+		log_error("Can't open file %s  for transfer ",fname);
 		printf("\033[0m");
         exit(1);   
     }   
@@ -80,7 +68,8 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
   	sprintf(size, "%f", (res/1024.0) );
 	//send file size to  the client 
 	write(*ptr_connfd, size, sizeof(size));
-	printf("[i]size of the file to transfer is  %f Kb\n",(res/1024.0));
+	printf("[i]Size of the file %s to transfer is  %f Kb\n",fname,(res/1024.0));
+	log_status("Size of the file %s to transfer is  %f Kb",fname,(res/1024.0));
 	fseek(fp, 0, SEEK_SET);
     /******************************************/
         /* Read data from file and send it */
@@ -104,13 +93,15 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
 
                // printf("End of file\n");
 				printf("\033[0;32m");
-		    	printf("[+]File transfer completed for id: %d\n",*ptr_connfd);
+		    	printf("[+]File %s transfer completed for id: %d\n",fname,*ptr_connfd);
+				log_status("File %s transfer completed for id: %d",fname,*ptr_connfd);
 				printf("\033[0m");
 			}
             if (ferror(fp))
             {   
 				printf("\033[0;31m");
-				printf("[-]Error reading file for  transfer \n");
+				printf("[-]Error reading file %s for  transfer \n",fname);
+				log_error("Error reading file %s for  transfer ",fname);
 				printf("\033[0m");
 			}
             break;
@@ -118,6 +109,7 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
     }
 	printf("\033[0;32m");
 	printf("[+]Closing Connection for id: %d\n",*ptr_connfd);
+	log_status("Closing Connection for id: %d",*ptr_connfd);
 	printf("\033[0;31m");
 	close(*ptr_connfd);
 	//shutdown(*ptr_connfd,SHUT_WR);
@@ -132,7 +124,7 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
  * 
 */
 // Function designed for chat between client and server.
-int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_change )
+int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 {
 	FILE  *filePointer,*filePointerTransfer ;
 
@@ -153,6 +145,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 	
 	if (strncmp("bash_list", buff, 9) == 0) 
 	{   printf("[i]The client wants information about shared folder\n ");
+		log_status("The client wants information about shared folder");
 		//| awk  '{print $1 " " $11 }'  " " : field are sparate with space , $1 et $ 11 print colom1 and 11
 		//chdir(argv[4]);// change the path 
 		strcat(cmd,argv[4]);
@@ -165,6 +158,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 			{
 				printf("\033[0;31m");
 				printf("[-]Error can t find list of file to share \n");
+				log_error("Error can t find list of file to share");
 				printf("\033[0m");
 				bzero(buff,sizeof(buff));
 				strcat(buff,"ERRORFILE1");
@@ -205,20 +199,14 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 		bzero(buff, MAX);
 		read(*ptr_connfd, buff, sizeof(buff));
 		sscanf(buff,"%d",&num_file);
+		/********************///////////////////////////////////////////////////////*/
 		printf("[i] the  number of file to send to the client is %d\n",num_file);
 		//get file name 
 		bzero(buff, MAX);
 		read(*ptr_connfd, buff, sizeof(buff));
-		printf("the file name is %s \n",buff);
-		/*********************************************///must change dir if it run 2nd it  crush 
-		char path[100] ;
-		//get the current  dir path  
-		
-		if (*ptr_change)
-		{
-			getcwd(path, sizeof(path)) ;
-		}
-		*ptr_change =0 ;
+		//printf("the file name is %s \n",buff);
+
+		//must change dir if it run 2nd it  crush 
 		int dir_test = chdir(path);
 		//printf(" hello dir_test =%d and path=%s\n",dir_test,path);
 		//system("pwd");//test to check  dir path
@@ -228,6 +216,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
         {
 			printf("\033[0;31m");
             printf("[-]Error can t find list of file to share \n");
+			log_error("Error can t find list of file to share ");
 			printf("\033[0m");
             exit(1);
         }
@@ -249,7 +238,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 			//transfer file here 
 			chdir(argv[4]);// change the path 
 			printf( "[i]the file for transfer  name is = %s \n",buff);
-
+			log_status("the file for transfer  name is = %s ",buff);
 			SendFileToClient(ptr_connfd,buff ,cli );
 			//create thread  for sending the file to the client 
 			/*err = pthread_create(&tid, NULL, &SendFileToClient, ptr_connfd);
@@ -266,6 +255,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,int *ptr_chang
 			bzero(buff, sizeof(buff));
 			printf("\033[0;31m");
 			printf("[-] Client try to get file that doesn't exist in the  shared folder \n");
+			log_warning("Client try to get file that doesn't exist in the  shared folder");
 			printf("\033[0m");
 		}
 
@@ -290,6 +280,7 @@ void create_scoket(int * sockfd)
     {
 		printf("\033[0;31m");
 		perror("[-]socket creation failed...\n");
+		log_error("socket creation failed...");
 		printf("\033[0m");
 		exit(1);
 	}
@@ -297,6 +288,7 @@ void create_scoket(int * sockfd)
 	{	
 		printf("\033[0;32m");
 		printf("[+]Socket successfully created..\n");
+		log_status("Socket successfully created..");
 		printf("\033[0m");
 	}
 	
@@ -317,6 +309,7 @@ void socket_bind(struct sockaddr_in *servaddr ,int * sockfd)
 	{
 		printf("\033[0;31m");
 		perror("[-]socket bind failed...\n");
+		log_error("socket bind failed...");
 		printf("\033[0m");
 		exit(1);
 	}
@@ -324,6 +317,7 @@ void socket_bind(struct sockaddr_in *servaddr ,int * sockfd)
 	{	
 		printf("\033[0;32m");
 		printf("[+]Socket successfully binded..\n");
+		log_status("Socket successfully binded..");
 		printf("\033[0m");
 	}
 }
@@ -340,6 +334,7 @@ void socket_listening (int *sockfd)
 	{
 		printf("\033[0;31m");
 		printf("[-]Listen failed...\n");
+		log_error("Listen failed...");
 		printf("\033[0m");
 		exit(1);
 	}
@@ -347,6 +342,7 @@ void socket_listening (int *sockfd)
 	{	
 		printf("\033[0;32m");
 		printf("[+]Server listening..\n");
+		log_status("Server listening..");
 		printf("\033[0m");
 	}
 }
@@ -368,13 +364,15 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 		{
 			printf("\033[0;31m");
 			perror("[-]server accept failed...\n");
+			log_error("server accept failed...");
 			printf("\033[0m");
 			exit(1);
 		}
 		else
 		{
 			printf("\033[0;32m");
-			printf("[+]server accept the client...\n");
+			printf("[+]server accept the client :%s:%d \n",inet_ntoa(cli->sin_addr),ntohs(cli->sin_port));
+			log_status("server accept the client :%s:%d",inet_ntoa(cli->sin_addr),ntohs(cli->sin_port));
 			printf("\033[0m");
 		}
 }
@@ -388,14 +386,28 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 */
 int main(int argc, char **argv)
 {
+	
 	//for socket
 	int sockfd, connfd, len;
 	int *ptr_sockfd ,*ptr_connfd , *ptr_len;
 	struct sockaddr_in servaddr, cli;
 	struct sockaddr_in *ptr_servaddr , *ptr_cli;
-	
+	char folder_path[100] ;
+	const char log_file_name [50]= "log.txt";
 	int change =1 ; //for transfer 
 	int *ptr_change =&change;
+
+	//get the current  dir path  
+	bzero(folder_path,sizeof(folder_path));
+	getcwd(folder_path, sizeof(folder_path)) ;
+	//printf(" the path is %s \n",folder_path);
+ 
+	// reset all to log  file
+	logger_reset_state();
+	// oen file for create log 
+	logger_set_log_file(log_file_name,folder_path);
+
+	//check argument 
 	check_arg_server(argc,argv);
 	// socket create and verification
 	ptr_sockfd = &sockfd;
@@ -428,7 +440,7 @@ int main(int argc, char **argv)
 		socket_accept (ptr_connfd , ptr_sockfd , ptr_cli , ptr_len);
  
 		//temp sol to stop server 
-		int b = share_msg(ptr_connfd,argv,cli,ptr_change);
+		int b = share_msg(ptr_connfd,argv,cli,folder_path);
 		if (!b)
 		{
 			close(connfd);
@@ -438,8 +450,13 @@ int main(int argc, char **argv)
         sleep(1);	
 		
 	}
+	//cleaning all and close  log file  using :  cleanup_internal();
+	 
 	// After chatting close the socket
 	close(sockfd);
 	printf("[i] Server will Shutdown  \n");
+	log_warning("Server will Shutdown ");
+	logger_reset_state();
 	return 0;	
 }
+ 

@@ -2,7 +2,7 @@
 // This  is  the  code for the  server                                       
 // ./Server -p Port_NBR  -d  Folder_Path                                       
 // @Oussama AMARA                                                              
-// Last modification 1/2/2023                                                 
+// Last modification 2/2/2023                                                 
 // version 0.5                                                                
 // @open issue : +color for  printf
 
@@ -392,9 +392,37 @@ int main(int argc, char **argv)
 	int *ptr_sockfd ,*ptr_connfd , *ptr_len;
 	struct sockaddr_in servaddr, cli;
 	struct sockaddr_in *ptr_servaddr , *ptr_cli;
-	char folder_path[100] ;
+	char folder_path[250] ;
+	FILE * logfilePointer = NULL ;
+	char ligne[1024];
+	
 	const char log_file_name [50]= "log.txt";
-	 
+
+	//check argument 
+	check_arg_server(argc,argv);
+
+	if(strcmp("--History", argv[1]) == 0 )
+	{
+		FILE * logfilePointer = NULL ;
+		logfilePointer = fopen("log.txt", "r");
+		//ste the psotion of the  pointer at the bening of the file
+		if (logfilePointer == NULL)
+			{
+				printf("\033[0;31m");
+				printf("[-]Error can t find log   file   \n");
+				printf("\033[0m");
+				exit(1);
+			}
+		fseek(logfilePointer, 0, SEEK_SET);
+		while(fgets(ligne, MAX, logfilePointer)) 
+		{   
+			printf("%s ",ligne);
+			
+		}
+
+		fclose(logfilePointer);
+		return 0;
+	}
 
 	//get the current  dir path  
 	bzero(folder_path,sizeof(folder_path));
@@ -406,8 +434,7 @@ int main(int argc, char **argv)
 	// oen file for create log 
 	logger_set_log_file(log_file_name,folder_path);
 
-	//check argument 
-	check_arg_server(argc,argv);
+	
 	// socket create and verification
 	ptr_sockfd = &sockfd;
 	create_scoket(ptr_sockfd);
@@ -425,7 +452,6 @@ int main(int argc, char **argv)
 
 	// Now server is ready to listen and verification
 	socket_listening (ptr_sockfd);
-
 	//chek for ctr+z as input to stope server	
 	while (1)
 	{
@@ -439,6 +465,8 @@ int main(int argc, char **argv)
 		socket_accept (ptr_connfd , ptr_sockfd , ptr_cli , ptr_len);
  
 		//temp sol to stop server 
+		
+		printf("hello  ther \n");
 		int b = share_msg(ptr_connfd,argv,cli,folder_path);
 		if (!b)
 		{
@@ -446,11 +474,11 @@ int main(int argc, char **argv)
 			break;
 		}
 		close(connfd);
-        sleep(1);	
+        sleep(1);
+		
 		
 	}
 	//cleaning all and close  log file  using :  cleanup_internal();
-	 
 	// After chatting close the socket
 	close(sockfd);
 	printf("[i] Server will Shutdown  \n");

@@ -1,7 +1,7 @@
 
 // This  header file for log creation                                        
 // @Oussama AMARA                                                              
-// Last modification 31/1/2023                                               
+// Last modification 1/2/2023                                               
 // version 1.0                                                               
 
 #ifndef	_LOGGER_H
@@ -47,7 +47,7 @@ void logger_set_log_level(const int level);
  * Default is syslog
  */
 void logger_reset_state(void);
-int logger_set_log_file(const char* filename);
+int logger_set_log_file(const char* filename, char* path);
 void logger_set_out_stdout();
 
 __END_DECLS

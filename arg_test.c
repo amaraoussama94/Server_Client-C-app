@@ -254,27 +254,55 @@ void check_arg_client(int argc, char **argv  )
  * @brief This  function will check all the passed argument to the server , will check the order and option passed if there re valid one or  no and the  argument for each option using some  function. It has two parameters  " argc  " and  "  **argv ".
  * @param[in]  Argc  its contain a number of passed arguments to server +1 (name of the file).
  * @param[in]  **argv Pointer to pointer contains the name and the argument such as the path of the folder to share.
- * @return void
+ * @return int 
  * 
 */
 
-void check_arg_server(int argc, char **argv  )
+int check_arg_server(int argc, char **argv  )
 {
-	if ( argc < 5|| argc > 5)
+	if ( argc < 2|| argc > 5)/*****************change it */
 	{
 		printf("[i]./Server -p Port_NBR -d folder_path\n");
+		printf("[i]./Server --History\n");
+
 		exit(1);			 
 
 	}
-	if  (strcmp("-p", argv[1]) != 0) 
+	if  ((strcmp("-p", argv[1]) != 0) && (strcmp("--History", argv[1]) != 0) )
+	{
+		printf("\033[0;31m");
+		printf("[-]please try again available option are --History , -p and -d \n");
+		printf("\033[0m");
+		printf("[i]./Server -p Port_NBR -d folder_path\n");
+		printf("[i]./Server --History\n");
+		printf("test  1\n");
+		exit(1);
+
+	}
+	if ((strcmp("--History", argv[1]) == 0 )&& (argc >2))
+	{
+		printf("\033[0;31m");
+		printf("[-]please try again available option are History , -p and -d \n");
+		printf("\033[0m");
+		printf("[i]./Server -p Port_NBR -d folder_path\n");
+		printf("[i]./Server --History\n");
+		printf("test  2\n");
+		exit(1);
+	}
+	else if ((strcmp("--History", argv[1]) == 0 )&& (argc == 2))
+	{
+		
+		return 1; // back to code all ok 
+	}
+	if ((strcmp("-p", argv[1]) == 0 )&& (argc <5))
 	{
 		printf("\033[0;31m");
 		printf("[-]please try again available option is -p and -d \n");
 		printf("\033[0m");
 		printf("[i]./Server -p Port_NBR -d folder_path\n");
 		exit(1);
-
 	}
+	
 	if  (strcmp("-d", argv[3]) != 0) 
 	{
 		printf("\033[0;31m");

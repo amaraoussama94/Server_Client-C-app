@@ -1,7 +1,7 @@
 
 // This  header file for argument test                                        
 // @Oussama AMARA                                                              
-// Last modification 11/1/2023                                               
+// Last modification 2/2/2023                                               
 // version 0.5                                                                
 
 #ifndef	_ARG_TEST_H
@@ -41,7 +41,7 @@ int validateIP4Dotted(const char *s);
 
 void check_arg_client(int argc, char **argv  );
 
-void check_arg_server(int argc, char **argv  );
+int check_arg_server(int argc, char **argv  );
 
 __END_DECLS
 

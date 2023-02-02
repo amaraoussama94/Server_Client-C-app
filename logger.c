@@ -1,7 +1,7 @@
 
 //  This  is  the  code for create log of the server/client activity                       
 // @Oussama AMARA                                                              
-// Last modification  31/01/2023                                                
+// Last modification  1/02/2023                                                
 // version 1.0                                                                 
  // @open issue : nan
 
@@ -87,6 +87,7 @@ void logger_reset_state(void)
     log_global_set.max_log_level = LOG_MAX_LEVEL_ERROR_WARNING_STATUS;
     cleanup_internal();
     log_global_set.logger_func = print_to_syslog;
+    printf (" done reset\n");
 }
 
 /*
@@ -109,8 +110,11 @@ void print_to_file(const int level, const char* message)
     current_tm = localtime(&time_now);
 
     int res = fprintf(log_global_set.out_file,
-            "%s: %02i:%02i:%02i [%s] %s\n"
+            "%s: %d-%02d-%02d  %02i:%02i:%02i [%s] %s\n"
                 , PROGRAM_NAME
+                , current_tm->tm_year + 1900 
+                , current_tm->tm_mon + 1
+                , current_tm->tm_mday
                 , current_tm->tm_hour
                 , current_tm->tm_min
                 , current_tm->tm_sec
@@ -134,14 +138,20 @@ void logger_set_log_level(const int level)
 
 /*
  */
-int logger_set_log_file(const char* filename)
+int logger_set_log_file(const char* filename ,   char* path)
 {
+    char local [50];
+    bzero(local,sizeof(local));
+    strcat(local,path);
     cleanup_internal();
-
-    log_global_set.out_file = fopen(filename, "a");
+    strcat(local,"/");
+    strcat(local,filename);
+    log_global_set.out_file =NULL;
+    log_global_set.out_file = fopen(local, "a+");
 
     if (log_global_set.out_file == NULL) {
         log_error("Failed to open file %s error %s", filename, strerror(errno));
+        printf("[-]Error can't find log file \n");
         return -1;
     }
 

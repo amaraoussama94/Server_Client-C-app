@@ -1,6 +1,7 @@
  
 // This  is  the  code for the  server                                       
-// ./Server -p Port_NBR  -d  Folder_Path                                       
+// ./Server -p Port_NBR  -d  Folder_Path   
+// ./Server --History                                   
 // @Oussama AMARA                                                              
 // Last modification 2/2/2023                                                 
 // version 0.5                                                                
@@ -416,7 +417,11 @@ int main(int argc, char **argv)
 		fseek(logfilePointer, 0, SEEK_SET);
 		while(fgets(ligne, MAX, logfilePointer)) 
 		{   
-			printf("%s ",ligne);
+			//print only server log
+			if(strncmp("Server:",ligne,7) == 0 )
+			{	
+				printf("%s ",ligne);
+			}
 			
 		}
 
@@ -465,8 +470,6 @@ int main(int argc, char **argv)
 		socket_accept (ptr_connfd , ptr_sockfd , ptr_cli , ptr_len);
  
 		//temp sol to stop server 
-		
-		printf("hello  ther \n");
 		int b = share_msg(ptr_connfd,argv,cli,folder_path);
 		if (!b)
 		{

@@ -17,6 +17,7 @@ This is the server side, it should run all time waiting for client to connect. T
 {\ttfamily \#include $<$errno.\+h$>$}\newline
 {\ttfamily \#include \char`\"{}Const.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}arg\+\_\+test.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}logger.\+h\char`\"{}}\newline
 Include dependency graph for server.\+c\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
@@ -29,7 +30,7 @@ Include dependency graph for server.\+c\+:\nopagebreak
 \item 
 void \mbox{\hyperlink{server_8c_a9368c696bfda42cce823526a47747243}{Send\+File\+To\+Client}} (int $\ast$ptr\+\_\+connfd, char $\ast$fname, struct sockaddr\+\_\+in cli)
 \begin{DoxyCompactList}\small\item\em This function sends the file to the client we talk about text , video , image ,pdf ..files . It has three parameters \char`\"{} cli  \char`\"{} ,\char`\"{} fname \char`\"{} and \char`\"{}  connfd \char`\"{}. \end{DoxyCompactList}\item 
-int \mbox{\hyperlink{server_8c_a30ebcca7a5ee8fb298c279aaf92bab4a}{share\+\_\+msg}} (int $\ast$ptr\+\_\+connfd, char $\ast$$\ast$argv, struct sockaddr\+\_\+in cli, int $\ast$ptr\+\_\+change)
+int \mbox{\hyperlink{server_8c_aeccb3aa3179e6992dd209ca06e8babf5}{share\+\_\+msg}} (int $\ast$ptr\+\_\+connfd, char $\ast$$\ast$argv, struct sockaddr\+\_\+in cli, char $\ast$path)
 \begin{DoxyCompactList}\small\item\em The function uses the code send by the client to know what it should do, if there\textquotesingle{}s no code send then the function returns 1. If the code is \char`\"{}list\char`\"{} this function will get the list of file and folder in the shared folder using the script the output will redirect to text file. If the code is \char`\"{}transmit\char`\"{} then the code uses the name of file, send by the client then start transmit it to the client. . It has two parameters \char`\"{} $\ast$ptr\+\_\+connfd  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{server_8c_a3f86fa435dab7d56c4bb21db0cd61298}{create\+\_\+scoket}} (int $\ast$sockfd)
 \begin{DoxyCompactList}\small\item\em This function will create the socket as TCP using IPV4. It has one parameter \char`\"{} $\ast$sockfd   \char`\"{}. \end{DoxyCompactList}\item 
@@ -118,11 +119,11 @@ This function sends the file to the client we talk about text , video , image ,p
 \begin{DoxyReturn}{Returns}
 void 
 \end{DoxyReturn}
-\mbox{\Hypertarget{server_8c_a30ebcca7a5ee8fb298c279aaf92bab4a}\label{server_8c_a30ebcca7a5ee8fb298c279aaf92bab4a}} 
+\mbox{\Hypertarget{server_8c_aeccb3aa3179e6992dd209ca06e8babf5}\label{server_8c_aeccb3aa3179e6992dd209ca06e8babf5}} 
 \index{server.c@{server.c}!share\_msg@{share\_msg}}
 \index{share\_msg@{share\_msg}!server.c@{server.c}}
 \doxysubsubsection{\texorpdfstring{share\_msg()}{share\_msg()}}
-{\footnotesize\ttfamily int share\+\_\+msg (\begin{DoxyParamCaption}\item[{int $\ast$}]{ptr\+\_\+connfd,  }\item[{char $\ast$$\ast$}]{argv,  }\item[{struct sockaddr\+\_\+in}]{cli,  }\item[{int $\ast$}]{ptr\+\_\+change }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily int share\+\_\+msg (\begin{DoxyParamCaption}\item[{int $\ast$}]{ptr\+\_\+connfd,  }\item[{char $\ast$$\ast$}]{argv,  }\item[{struct sockaddr\+\_\+in}]{cli,  }\item[{char $\ast$}]{path }\end{DoxyParamCaption})}
 
 
 

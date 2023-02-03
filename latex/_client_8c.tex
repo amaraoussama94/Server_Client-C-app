@@ -17,6 +17,7 @@ This is the client side, after connecting to the server, using the passed argume
 {\ttfamily \#include \char`\"{}arg\+\_\+test.\+h\char`\"{}}\newline
 {\ttfamily \#include $<$sys/stat.\+h$>$}\newline
 {\ttfamily \#include $<$sys/types.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}logger.\+h\char`\"{}}\newline
 Include dependency graph for Client.\+c\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
@@ -31,7 +32,7 @@ void \mbox{\hyperlink{_client_8c_a4c9859b1b3f9af1ed005db04327c8eaf}{update\+\_\+
 \begin{DoxyCompactList}\small\item\em This function will show a progress bar that will be updated accordingly percentage of receiving a file, this is not 100\% accurate. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{_client_8c_ae824443b3f661414ba1f2718e17fe97d}{gotoxy}} (int x, int y)
 \begin{DoxyCompactList}\small\item\em printing an ANSI escape code -\/ the ones used to control tty behavior (clear screen, move cursor, etc.) \end{DoxyCompactList}\item 
-void \mbox{\hyperlink{_client_8c_ab641718fc407b4685141ab5201c5855f}{share\+\_\+msg}} (int $\ast$sockfd, char $\ast$$\ast$argv)
+void \mbox{\hyperlink{_client_8c_a2a1f629103f368841ef08833da5775e4}{share\+\_\+msg}} (int $\ast$sockfd, char $\ast$$\ast$argv, int argc)
 \begin{DoxyCompactList}\small\item\em The function uses the argument input to know what code should send to the server, if there\textquotesingle{}s no option (one of --list or -\/T) there\textquotesingle{}s no code to send. If --list passed as an argument the code is \char`\"{}bash\+\_\+\+\_\+list\char`\"{} will be sent to the server side. If -\/T is passed as an argument the code \char`\"{}bash\+\_\+\+\_\+transmit\char`\"{} will be sent to the server. It has two parameters \char`\"{} $\ast$ptr\+\_\+connfd  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{_client_8c_a3f86fa435dab7d56c4bb21db0cd61298}{create\+\_\+scoket}} (int $\ast$sockfd)
 \begin{DoxyCompactList}\small\item\em This function will create the socket as TCP using IPV4. It has one parameter \char`\"{} $\ast$sockfd   \char`\"{}. \end{DoxyCompactList}\item 
@@ -120,11 +121,11 @@ This function main function will return 0 if it run succefuly. It has two parame
 \begin{DoxyReturn}{Returns}
 int 0 for success 
 \end{DoxyReturn}
-\mbox{\Hypertarget{_client_8c_ab641718fc407b4685141ab5201c5855f}\label{_client_8c_ab641718fc407b4685141ab5201c5855f}} 
+\mbox{\Hypertarget{_client_8c_a2a1f629103f368841ef08833da5775e4}\label{_client_8c_a2a1f629103f368841ef08833da5775e4}} 
 \index{Client.c@{Client.c}!share\_msg@{share\_msg}}
 \index{share\_msg@{share\_msg}!Client.c@{Client.c}}
 \doxysubsubsection{\texorpdfstring{share\_msg()}{share\_msg()}}
-{\footnotesize\ttfamily void share\+\_\+msg (\begin{DoxyParamCaption}\item[{int $\ast$}]{sockfd,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily void share\+\_\+msg (\begin{DoxyParamCaption}\item[{int $\ast$}]{sockfd,  }\item[{char $\ast$$\ast$}]{argv,  }\item[{int}]{argc }\end{DoxyParamCaption})}
 
 
 

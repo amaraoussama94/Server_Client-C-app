@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pika_5fpika_14',['PIKA_PIKA',['../md__home_oussama_amara_sofia_local__desktop_test_dev__r_e_a_d_m_e.html',1,'']]]
+  ['main_26',['main',['../_client_8c.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;Client.c'],['../server_8c.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;server.c']]]
 ];

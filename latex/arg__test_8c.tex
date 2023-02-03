@@ -28,9 +28,9 @@ int \mbox{\hyperlink{arg__test_8c_a34e7af0c9aa571ae979ab3797bc808de}{is\+Valid\+
 \begin{DoxyCompactList}\small\item\em This function checks if the passed address of the client is a valid IP address. It has one parameter \char`\"{} $\ast$ip\+Address \char`\"{}. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{arg__test_8c_a74854f0d4143fceae6eb3e6b7c8c2f96}{validate\+IP4\+Dotted}} (const char $\ast$s)
 \begin{DoxyCompactList}\small\item\em This function checks if the passed address of the client is a valid IP address but manuelle (just back up solution not used ). It has one parameter \char`\"{} $\ast$s \char`\"{}. \end{DoxyCompactList}\item 
-void \mbox{\hyperlink{arg__test_8c_ab58ab28739958ae9aff0bb8ff1e8d322}{check\+\_\+arg\+\_\+client}} (int argc, char $\ast$$\ast$argv)
+int \mbox{\hyperlink{arg__test_8c_a219e62aa71cab34a5d3213ad1d513e33}{check\+\_\+arg\+\_\+client}} (int argc, char $\ast$$\ast$argv)
 \begin{DoxyCompactList}\small\item\em This function will check all the passed argument to the client, will check the order and option passed if there re valid one or no and the argument for each option using some function. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\item 
-void \mbox{\hyperlink{arg__test_8c_a192856e12a4d9023f48a0032121e1915}{check\+\_\+arg\+\_\+server}} (int argc, char $\ast$$\ast$argv)
+int \mbox{\hyperlink{arg__test_8c_af7020d6a4b4074fb408b8fe0a2cb39be}{check\+\_\+arg\+\_\+server}} (int argc, char $\ast$$\ast$argv)
 \begin{DoxyCompactList}\small\item\em This function will check all the passed argument to the server , will check the order and option passed if there re valid one or no and the argument for each option using some function. It has two parameters \char`\"{} argc  \char`\"{} and \char`\"{}  $\ast$$\ast$argv \char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
@@ -49,11 +49,11 @@ oussama amara
 
 
 \doxysubsection{Function Documentation}
-\mbox{\Hypertarget{arg__test_8c_ab58ab28739958ae9aff0bb8ff1e8d322}\label{arg__test_8c_ab58ab28739958ae9aff0bb8ff1e8d322}} 
+\mbox{\Hypertarget{arg__test_8c_a219e62aa71cab34a5d3213ad1d513e33}\label{arg__test_8c_a219e62aa71cab34a5d3213ad1d513e33}} 
 \index{arg\_test.c@{arg\_test.c}!check\_arg\_client@{check\_arg\_client}}
 \index{check\_arg\_client@{check\_arg\_client}!arg\_test.c@{arg\_test.c}}
 \doxysubsubsection{\texorpdfstring{check\_arg\_client()}{check\_arg\_client()}}
-{\footnotesize\ttfamily void check\+\_\+arg\+\_\+client (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily int check\+\_\+arg\+\_\+client (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
 
 
 
@@ -67,13 +67,13 @@ This function will check all the passed argument to the client, will check the o
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-void 
+int 
 \end{DoxyReturn}
-\mbox{\Hypertarget{arg__test_8c_a192856e12a4d9023f48a0032121e1915}\label{arg__test_8c_a192856e12a4d9023f48a0032121e1915}} 
+\mbox{\Hypertarget{arg__test_8c_af7020d6a4b4074fb408b8fe0a2cb39be}\label{arg__test_8c_af7020d6a4b4074fb408b8fe0a2cb39be}} 
 \index{arg\_test.c@{arg\_test.c}!check\_arg\_server@{check\_arg\_server}}
 \index{check\_arg\_server@{check\_arg\_server}!arg\_test.c@{arg\_test.c}}
 \doxysubsubsection{\texorpdfstring{check\_arg\_server()}{check\_arg\_server()}}
-{\footnotesize\ttfamily void check\+\_\+arg\+\_\+server (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily int check\+\_\+arg\+\_\+server (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
 
 
 
@@ -87,7 +87,7 @@ This function will check all the passed argument to the server , will check the 
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-void 
+int 
 \end{DoxyReturn}
 \mbox{\Hypertarget{arg__test_8c_a3ecd23946137caf9eec9a002037676f4}\label{arg__test_8c_a3ecd23946137caf9eec9a002037676f4}} 
 \index{arg\_test.c@{arg\_test.c}!check\_dir\_client@{check\_dir\_client}}

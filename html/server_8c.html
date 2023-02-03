@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PIKA_PIKA: /home/oussama.amara@sofia.local/Desktop/test-dev/server.c File Reference</title>
+<title>My Project: /home/oussama.amara@sofia.local/Desktop/test-dev/server.c File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -21,8 +21,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">PIKA_PIKA
-   &#160;<span id="projectnumber">0.9</span>
+   <div id="projectname">My Project
    </div>
   </td>
  </tr>
@@ -87,26 +86,31 @@ $(function() {
 <code>#include &lt;errno.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="_const_8h_source.html">Const.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="arg__test_8h_source.html">arg_test.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="logger_8h_source.html">logger.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for server.c:</div>
 <div class="dyncontent">
 <div class="center"><img src="server_8c__incl.png" border="0" usemap="#a_2home_2oussama_8amara_0dsofia_8local_2_desktop_2test-dev_2server_8c" alt=""/></div>
 <map name="a_2home_2oussama_8amara_0dsofia_8local_2_desktop_2test-dev_2server_8c" id="a_2home_2oussama_8amara_0dsofia_8local_2_desktop_2test-dev_2server_8c">
-<area shape="rect" title="This is the server side, it should run all time waiting for client to connect. The server has two arg..." alt="" coords="501,5,673,61"/>
+<area shape="rect" title="This is the server side, it should run all time waiting for client to connect. The server has two arg..." alt="" coords="603,5,775,61"/>
 <area shape="rect" title=" " alt="" coords="5,184,97,211"/>
-<area shape="rect" title=" " alt="" coords="122,184,189,211"/>
-<area shape="rect" title=" " alt="" coords="213,184,284,211"/>
-<area shape="rect" title=" " alt="" coords="309,184,405,211"/>
-<area shape="rect" title=" " alt="" coords="429,184,500,211"/>
-<area shape="rect" title=" " alt="" coords="524,184,595,211"/>
-<area shape="rect" title=" " alt="" coords="811,184,913,211"/>
-<area shape="rect" title=" " alt="" coords="938,184,1034,211"/>
-<area shape="rect" title=" " alt="" coords="899,109,974,136"/>
-<area shape="rect" title=" " alt="" coords="1059,184,1127,211"/>
-<area shape="rect" href="_const_8h.html" title="This header file includes all the constant variables used in this project.." alt="" coords="1151,184,1221,211"/>
-<area shape="rect" href="arg__test_8h.html" title="This is the header file containing all the function declarations to verify the argument for the serve..." alt="" coords="585,109,672,136"/>
-<area shape="rect" title=" " alt="" coords="619,184,689,211"/>
-<area shape="rect" title=" " alt="" coords="714,184,786,211"/>
+<area shape="rect" title=" " alt="" coords="966,184,1033,211"/>
+<area shape="rect" title=" " alt="" coords="121,184,192,211"/>
+<area shape="rect" title=" " alt="" coords="217,184,313,211"/>
+<area shape="rect" title=" " alt="" coords="337,184,408,211"/>
+<area shape="rect" title=" " alt="" coords="1057,184,1128,211"/>
+<area shape="rect" title=" " alt="" coords="432,184,535,211"/>
+<area shape="rect" title=" " alt="" coords="559,184,655,211"/>
+<area shape="rect" title=" " alt="" coords="807,109,882,136"/>
+<area shape="rect" title=" " alt="" coords="1152,184,1220,211"/>
+<area shape="rect" href="_const_8h.html" title="This header file includes all the constant variables used in this project.." alt="" coords="871,184,941,211"/>
+<area shape="rect" href="arg__test_8h.html" title="This is the header file containing all the function declarations to verify the argument for the serve..." alt="" coords="645,109,732,136"/>
+<area shape="rect" href="logger_8h.html" title="This is the header file containing all the function declarations to create history(log) for both clie..." alt="" coords="1149,109,1223,136"/>
+<area shape="rect" title=" " alt="" coords="776,184,847,211"/>
+<area shape="rect" title=" " alt="" coords="679,184,751,211"/>
+<area shape="rect" title=" " alt="" coords="1244,184,1320,211"/>
+<area shape="rect" title=" " alt="" coords="1345,184,1409,211"/>
+<area shape="rect" title=" " alt="" coords="1433,184,1507,211"/>
 </map>
 </div>
 </div><table class="memberdecls">
@@ -115,9 +119,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a9368c696bfda42cce823526a47747243"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="server_8c.html#a9368c696bfda42cce823526a47747243">SendFileToClient</a> (int *ptr_connfd, char *fname, struct sockaddr_in cli)</td></tr>
 <tr class="memdesc:a9368c696bfda42cce823526a47747243"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function sends the file to the client we talk about text , video , image ,pdf ..files . It has three parameters " cli  " ," fname " and "  connfd ".  <a href="server_8c.html#a9368c696bfda42cce823526a47747243">More...</a><br /></td></tr>
 <tr class="separator:a9368c696bfda42cce823526a47747243"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30ebcca7a5ee8fb298c279aaf92bab4a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="server_8c.html#a30ebcca7a5ee8fb298c279aaf92bab4a">share_msg</a> (int *ptr_connfd, char **argv, struct sockaddr_in cli, int *ptr_change)</td></tr>
-<tr class="memdesc:a30ebcca7a5ee8fb298c279aaf92bab4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The function uses the code send by the client to know what it should do, if there's no code send then the function returns 1. If the code is "list" this function will get the list of file and folder in the shared folder using the script the output will redirect to text file. If the code is "transmit" then the code uses the name of file, send by the client then start transmit it to the client. . It has two parameters " *ptr_connfd  " and "  **argv ". "  **argv ".  <a href="server_8c.html#a30ebcca7a5ee8fb298c279aaf92bab4a">More...</a><br /></td></tr>
-<tr class="separator:a30ebcca7a5ee8fb298c279aaf92bab4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeccb3aa3179e6992dd209ca06e8babf5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="server_8c.html#aeccb3aa3179e6992dd209ca06e8babf5">share_msg</a> (int *ptr_connfd, char **argv, struct sockaddr_in cli, char *path)</td></tr>
+<tr class="memdesc:aeccb3aa3179e6992dd209ca06e8babf5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The function uses the code send by the client to know what it should do, if there's no code send then the function returns 1. If the code is "list" this function will get the list of file and folder in the shared folder using the script the output will redirect to text file. If the code is "transmit" then the code uses the name of file, send by the client then start transmit it to the client. . It has two parameters " *ptr_connfd  " and "  **argv ". "  **argv ".  <a href="server_8c.html#aeccb3aa3179e6992dd209ca06e8babf5">More...</a><br /></td></tr>
+<tr class="separator:aeccb3aa3179e6992dd209ca06e8babf5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f86fa435dab7d56c4bb21db0cd61298"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="server_8c.html#a3f86fa435dab7d56c4bb21db0cd61298">create_scoket</a> (int *sockfd)</td></tr>
 <tr class="memdesc:a3f86fa435dab7d56c4bb21db0cd61298"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function will create the socket as TCP using IPV4. It has one parameter " *sockfd   ".  <a href="server_8c.html#a3f86fa435dab7d56c4bb21db0cd61298">More...</a><br /></td></tr>
 <tr class="separator:a3f86fa435dab7d56c4bb21db0cd61298"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -250,8 +254,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a30ebcca7a5ee8fb298c279aaf92bab4a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30ebcca7a5ee8fb298c279aaf92bab4a">&#9670;&nbsp;</a></span>share_msg()</h2>
+<a id="aeccb3aa3179e6992dd209ca06e8babf5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeccb3aa3179e6992dd209ca06e8babf5">&#9670;&nbsp;</a></span>share_msg()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -277,8 +281,8 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int *&#160;</td>
-          <td class="paramname"><em>ptr_change</em>&#160;</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>path</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['validateip4dotted_23',['validateIP4Dotted',['../arg__test_8c.html#a74854f0d4143fceae6eb3e6b7c8c2f96',1,'validateIP4Dotted(const char *s):&#160;arg_test.c'],['../arg__test_8h.html#a74854f0d4143fceae6eb3e6b7c8c2f96',1,'validateIP4Dotted(const char *s):&#160;arg_test.c']]]
+  ['update_5fbar_37',['update_bar',['../_client_8c.html#a4c9859b1b3f9af1ed005db04327c8eaf',1,'Client.c']]]
 ];

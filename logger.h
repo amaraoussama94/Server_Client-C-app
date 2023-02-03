@@ -15,7 +15,7 @@
 
 /**
  * @file logger.h
- * @brief 
+ * @brief  This is the header file containing all the function declarations to create  history(log) for both  client and  server .
  * @author oussama amara
  * @version 1.0
  * @date 31/1/2022

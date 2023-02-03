@@ -1,7 +1,8 @@
  
 //  This  is  the  code for the  Client                                        
 //   ./Client -ip @IP -p Port_NBR  --list (option)                             
-//   ./Client -ip @IP -p Port_NBR  --T (option) path(optional with T)          
+//   ./Client -ip @IP -p Port_NBR  --T   Files_Names     
+//   ./Client -History     
 // @Oussama AMARA                                                              
 // Last modification 2/2/2023                                                 
 // version 0.5                                                                 
@@ -301,6 +302,36 @@ int main(int argc, char **argv)
 	char folder_path[250] ;
 	const char log_file_name [50]= "log.txt";//same as  server  for now
 
+	FILE * logfilePointer = NULL ;
+	char ligne[1024];
+	
+	//check argument 
+	check_arg_client(argc,argv);
+	if(strcmp("--History", argv[1]) == 0 )
+	{
+		FILE * logfilePointer = NULL ;
+		logfilePointer = fopen("log.txt", "r");
+		//ste the psotion of the  pointer at the bening of the file
+		if (logfilePointer == NULL)
+			{
+				printf("\033[0;31m");
+				printf("[-]Error can t find log   file   \n");
+				printf("\033[0m");
+				exit(1);
+			}
+		fseek(logfilePointer, 0, SEEK_SET);
+		while(fgets(ligne, MAX, logfilePointer)) 
+		{   
+			//print only client log
+			if(strncmp("Client:",ligne,7) == 0 )
+			{	
+				printf("%s ",ligne);
+			}
+		}
+
+		fclose(logfilePointer);
+		return 0;
+	}
 
 	//get the current  dir path  
 	bzero(folder_path,sizeof(folder_path));
@@ -313,8 +344,7 @@ int main(int argc, char **argv)
 	logger_set_log_file(log_file_name,folder_path);
 
 
-	//check argument 
-	check_arg_client(argc,argv);
+	
 	
 	// socket create and verification
 	ptr_sockfd= &sockfd;

@@ -1,7 +1,7 @@
 
 //  This  is  the  code for create log of the server/client activity                       
 // @Oussama AMARA                                                              
-// Last modification  1/02/2023                                                
+// Last modification  2/02/2023                                                
 // version 1.0                                                                 
  // @open issue : nan
 
@@ -9,7 +9,7 @@
 
 /**
  * @file logger.c
- * @brief   
+ * @brief   It contains all functions necessary for  creating  a log  file, print log as stdout  or add in to SYSLOG, There are 4 levels that you can find in the header file.
  * @author oussama amara
  * @version 1.0
  * @date 31/1/2022
@@ -59,8 +59,7 @@ void print_to_file(const int level, const char* message);
 
 
 /**
- * @brief 
- * @param[in] 
+ * @brief Close remaining file descriptor and reset global params
  * @return void
  * 
 */
@@ -79,6 +78,12 @@ void cleanup_internal()//struct para cleaning
     }
 }
 
+/**
+ * @brief  Reset internal state and set syslog as default target
+ * @return void
+ * 
+*/
+
 /*
  * Reset internal state and set syslog as default target
  */ 
@@ -87,8 +92,15 @@ void logger_reset_state(void)
     log_global_set.max_log_level = LOG_MAX_LEVEL_ERROR_WARNING_STATUS;
     cleanup_internal();
     log_global_set.logger_func = print_to_syslog;
-    printf (" done reset\n");
 }
+
+/**
+ * @brief  Print to syslog
+ * @param[in] Level describe the  level one  of  4, status, warning, errors, debug
+ * @param[in] Message the  message to be  written in the SYSLOG
+ * @return void
+ * 
+*/
 
 /*
  * Print to syslog
@@ -97,6 +109,14 @@ void print_to_syslog(const int level, const char* message)
 {
     syslog(LOG_INFO, "[%s] %s\n", LOG_LEVELS[level], message);
 }
+
+/**
+ * @brief  Print to file which can be a regular text file or STDOUT "file"
+ * @param[in] Level describe the  level one  of  4, status, warning, errors, debug
+ * @param[in] Message the  message to be  written in the SYSLOG
+ * @return void
+ * 
+*/
 
 /*
  * Print to file which can be a regular text file or STDOUT "file"
@@ -129,6 +149,13 @@ void print_to_file(const int level, const char* message)
     fflush(log_global_set.out_file);
 }
 
+/**
+ * @brief  set log level
+ * @param[in] Level describe the  level one  of  4, status, warning, errors, debug
+ * @return void
+ * 
+*/
+
 /*
  */
 void logger_set_log_level(const int level)
@@ -136,31 +163,43 @@ void logger_set_log_level(const int level)
     log_global_set.max_log_level = level;
 }
 
+/**
+ * @brief Allows the creation of the log   file .
+ * @param[in] filename  name of the  file 
+ * @param[in]  path The complete path of the folder where you want to save the file
+ * @return void
+ * 
+*/
+
 /*
  */
 int logger_set_log_file(const char* filename ,   char* path)
 {
-    char local [100];
+    char local [250];
     bzero(local,sizeof(local));
     strcat(local,path);
     cleanup_internal();
+    strcat(local,"/");
     strcat(local,filename);
     log_global_set.out_file =NULL;
-   // printf(" the file path  is %s \n",local);
     log_global_set.out_file = fopen(local, "a+");
 
     if (log_global_set.out_file == NULL) {
         log_error("Failed to open file %s error %s", filename, strerror(errno));
         printf("[-]Error can't find log file \n");
-        return 1;
+        return -1;
     }
 
     log_global_set.logger_func = print_to_file;
+
     return 0;
 }
 
-/*
- */
+/**
+ * @brief  set   stdout as log output 
+ * @return void
+ * 
+*/
 void logger_set_out_stdout()
 {
     cleanup_internal();
@@ -169,6 +208,15 @@ void logger_set_out_stdout()
     log_global_set.logger_func = print_to_file;
     log_global_set.out_file = stdout;
 }
+
+/**
+ * @brief  Logging functions
+ * @param[in] Level describe the  level one  of  4, status, warning, errors, debug
+ * @param[in] format The message to be  printed
+ * @param[in] args variable length
+ * @return void
+ * 
+*/
 
 /*
  * Logging functions
@@ -179,6 +227,11 @@ void log_generic(const int level, const char* format, va_list args)
     vsprintf(buffer, format, args);
     log_global_set.logger_func(level, buffer);
 }
+/**
+ * @brief   log error add the error word to the  line and  get the message , like  a printf  function  * @param[in] format The message to be  printed
+ * @return void
+ * 
+*/
 
 void log_error(char *format, ...)
 {
@@ -187,6 +240,13 @@ void log_error(char *format, ...)
     log_generic(LOG_LEVEL_ERROR, format, args);
     va_end(args);
 }
+
+/**
+ * @brief   log warning  add the warning word to the  line and  get the message , like  a printf  function 
+ * @param[in] format The message to be  printed
+ * @return void
+ * 
+*/
 
 void log_warning(char *format, ...)
 {
@@ -200,6 +260,13 @@ void log_warning(char *format, ...)
     va_end(args);
 }
 
+/**
+ * @brief  log status add the status word to the  line and  get the message , like  a printf  function 
+ * @param[in] format The message to be  printed
+ * @return void
+ * 
+*/
+
 void log_status(char *format, ...)
 {
     if (log_global_set.max_log_level < LOG_MAX_LEVEL_ERROR_WARNING_STATUS) {
@@ -211,6 +278,13 @@ void log_status(char *format, ...)
     log_generic(LOG_LEVEL_STATUS, format, args);
     va_end(args);
 }
+
+/**
+ * @brief  log debug add the debug word to the  line and  get the message , like  a printf  function 
+ * @param[in] format The message to be  printed
+ * @return void
+ * 
+*/
 
 void log_debug(char *format, ...)
 {

@@ -149,7 +149,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 	int  j =0;
 
 	int err ;
-	pthread_t tid; 
+	//pthread_t tid; 
 	// bzero :Set N bytes of pointer to 0.   
 	bzero(buff, MAX);//or you can use memset (&buff,'\0',sizeof(buff))
 
@@ -390,18 +390,16 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 			printf("\033[0m");
 		}
 }
-void win_socket_init()
+int  win_socket_init()
 {
-	#if defined(_WIN32)
-        WSADATA d;
-        if (WSAStartup(MAKEWORD(2, 2), &d)) //initialize Winsock ,MAKEWORD macro allows us to request Winsock version 2.2
-        {
-            fprintf(stderr, "Failed to initialize.\n");
-            return 1;
-        }
-    #endif
+    WSADATA d;
+    if (WSAStartup(MAKEWORD(2, 2), &d)) //initialize Winsock ,MAKEWORD macro allows us to request Winsock version 2.2
+    {
+        fprintf(stderr, "Failed to initialize.\n");
+        return 1;
+    }  
 }
-void win-socket_cleanup()
+void win_socket_cleanup()
 {
 	#if defined(_WIN32)
         WSACleanup();
@@ -428,8 +426,10 @@ int main(int argc, char **argv)
 	char ligne[1024];
 	
 	const char log_file_name [50]= "log.txt";
-
-	win_socket_init();
+    //must check best position 
+	#if defined(_WIN32)
+		win_socket_init();
+	#endif
 	//check argument 
 	check_arg_server(argc,argv);
 
@@ -518,7 +518,8 @@ int main(int argc, char **argv)
 	printf("[i] Server will Shutdown  \n");
 	log_warning("Server will Shutdown ");
 	logger_reset_state();
-	win-socket_cleanup()
+	//must  chek bes position 
+	win_socket_cleanup();
 	return 0;	
 }
  

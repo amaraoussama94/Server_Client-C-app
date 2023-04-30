@@ -9,7 +9,6 @@
 .
 
 ├── Headers
-
 ├── Sources
 
 ├── libs
@@ -22,7 +21,7 @@
 
 ## Key features
 
-The real platform:  Linux
+The real platform:  Linux , windows 
 
 Few dependencies (socket , )
 ## Project overview :  

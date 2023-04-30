@@ -33,7 +33,11 @@ void check_dir_serv (char **argv)
 		printf("\033[0m");
     	closedir(dir);
 	} 
-	else if (ENOENT == errno) 
+	#if defined(_WIN32)//for windows
+		else 
+	#else
+		else if (ENOENT == errno) 
+	#endif
 	{
 		printf("\033[0;31m");
     	perror("[-]Please enter a valid path should be / ...\n");
@@ -58,7 +62,11 @@ void check_dir_client (char **argv)
 		printf("\033[0m");
     	closedir(dir);
 	} 
-	else if (ENOENT == errno) 
+	#if defined(_WIN32)//for windows
+		else 
+	#else
+		else if (ENOENT == errno) 
+	#endif
 	{
 		printf("\033[0;31m");
     	perror("[-]Please enter a valid path should be / ...\n");

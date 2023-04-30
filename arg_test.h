@@ -13,6 +13,7 @@
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #pragma comment(lib, "ws2_32.lib")
+    #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)  
 #else//Mac and linux
     #include <sys/types.h>
     #include <sys/socket.h>

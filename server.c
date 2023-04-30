@@ -394,6 +394,23 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 			printf("\033[0m");
 		}
 }
+void win_socket_init()
+{
+	#if defined(_WIN32)
+        WSADATA d;
+        if (WSAStartup(MAKEWORD(2, 2), &d)) //initialize Winsock ,MAKEWORD macro allows us to request Winsock version 2.2
+        {
+            fprintf(stderr, "Failed to initialize.\n");
+            return 1;
+        }
+    #endif
+}
+void win-socket_cleanup()
+{
+	#if defined(_WIN32)
+        WSACleanup();
+    #endif
+}
 // Driver function 
 /**
  * @brief This  function  main function will return 0 if it run succefuly. It has two parameters  " argc  " and  "  **argv ".

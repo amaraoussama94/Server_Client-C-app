@@ -6,19 +6,28 @@
 
 #ifndef	_ARG_TEST_H
 #define	_ARG_TEST_H	1
-#include <ctype.h>
-#include <arpa/inet.h>  
+#if defined(_WIN32)//for windows
+    #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0600
+    #endif
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "ws2_32.lib")
+#else//Mac and linux
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <unistd.h>
+    #include <errno.h>
+#endif
 #include <stdio.h>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include "Const.h"
-#include <errno.h>
 #include <dirent.h>// opendir 
-
+#include <ctype.h>
+#include "Const.h"
 /**
  * @file arg_test.h
  * @brief This is the header file containing all the function declarations to verify the argument for the server and the client.
@@ -26,9 +35,11 @@
  * @version 0.5
  * @date 11/1/2022
 */
+#if defined(_WIN32)//for windows
 
-__BEGIN_DECLS
-
+#else 
+    __BEGIN_DECLS
+#endif
 void check_dir (char **argv);
 
 int isNumber(char number[]);
@@ -43,7 +54,11 @@ void check_arg_client(int argc, char **argv  );
 
 int check_arg_server(int argc, char **argv  );
 
-__END_DECLS
+#if defined(_WIN32)//for windows
+
+#else 
+    __END_DECLS
+#endif 
 
 #endif /* arg_test.h  */
 

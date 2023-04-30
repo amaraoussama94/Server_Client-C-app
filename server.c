@@ -20,25 +20,21 @@
 //_WIN32  for  windows  system 
 //else it run for mac os and linux  system
 
-#if defined(_WIN32)
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
+#if defined(_WIN32)//for windows
+    #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0600
+    #endif
     #include <winsock2.h>
     #include <ws2tcpip.h>
-    // This tells the Microsoft Visual C compiler to link your program against the Winsock library, ws2_32.lib.
-    //If you'reusing MinGW as your compiler, then #pragma is ignored
     #pragma comment(lib, "ws2_32.lib")
-
-#else
-#include <arpa/inet.h> // inet_addr()/
-
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h> // read(), write(), close()
-#include <errno.h>
+#else//Mac and linux
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <unistd.h>
+    #include <errno.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>//system
@@ -433,6 +429,7 @@ int main(int argc, char **argv)
 	
 	const char log_file_name [50]= "log.txt";
 
+	win_socket_init();
 	//check argument 
 	check_arg_server(argc,argv);
 
@@ -521,6 +518,7 @@ int main(int argc, char **argv)
 	printf("[i] Server will Shutdown  \n");
 	log_warning("Server will Shutdown ");
 	logger_reset_state();
+	win-socket_cleanup()
 	return 0;	
 }
  

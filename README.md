@@ -8,7 +8,7 @@
 ## Project skeleton
 ├── Headers</br>
 ├── Sources</br>
-├── libs</br></br>
+├── libs</br> 
 ├── scripts</br>
 ├── doc</br>
 ├── README.md

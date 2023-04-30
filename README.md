@@ -6,21 +6,14 @@
   0.5 
 
 ## Project skeleton
-.
-
 ├── Headers</br>
-├── Sources
-
-├── libs
-
-├── scripts
-
-├── doc
-
+├── Sources</br>
+├── libs</br></br>
+├── scripts</br>
+├── doc</br>
 ├── README.md
 
 ## Key features
-
 The real platform:  Linux , windows 
 
 Few dependencies (socket , )

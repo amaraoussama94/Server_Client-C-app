@@ -3,9 +3,11 @@
 // ./Server -p Port_NBR  -d  Folder_Path   
 // ./Server --History                                   
 // @Oussama AMARA                                                              
-// Last modification 2/2/2023                                                 
+// Last modification 30/4/2023                                                 
 // version 0.5                                                                
 // @open issue : +color for  printf
+//               +windows support 
+//               + update documentation
 
 /**
  * @file server.c
@@ -14,21 +16,36 @@
  * @version 0.5
  * @date 11/1/2022
 */
+
+//_WIN32  for  windows  system 
+//else it run for mac os and linux  system
+
+#if defined(_WIN32)
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    // This tells the Microsoft Visual C compiler to link your program against the Winsock library, ws2_32.lib.
+    //If you'reusing MinGW as your compiler, then #pragma is ignored
+    #pragma comment(lib, "ws2_32.lib")
+
+#else
 #include <arpa/inet.h> // inet_addr()/
-#include <stdio.h>
+
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>//system
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h> // read(), write(), close()
 #include <errno.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>//system
+#include <string.h>
+#include <string.h>//
 #include "Const.h"
 #include "arg_test.h"
-
-#include <string.h>//
-
 #include "logger.h"//for log file 
 
 

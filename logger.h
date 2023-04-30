@@ -6,7 +6,11 @@
 
 #ifndef	_LOGGER_H
 #define	_LOGGER_H	1
-#include <syslog.h>
+#if defined(_WIN32)//for windows
+    #include "syslog-win32/syslog.h"
+#else 
+    #include <syslog.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>

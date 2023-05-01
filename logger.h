@@ -7,7 +7,7 @@
 #ifndef	_LOGGER_H
 #define	_LOGGER_H	1
 #if defined(_WIN32)//for windows
-    #include "syslog-win32/syslog.h"
+   // #include "syslog-win32/syslog.h"
 #else 
     #include <syslog.h>
 #endif

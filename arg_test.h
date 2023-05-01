@@ -8,9 +8,10 @@
 #define	_ARG_TEST_H	1
 #if defined(_WIN32)//for windows
     #ifndef _WIN32_WINNT
-    #define _WIN32_WINNT 0x0600
+        #define _WIN32_WINNT 0x0600
     #endif
     #include <winsock2.h>
+    #include <windows.h>
     #include <ws2tcpip.h>
     #pragma comment(lib, "ws2_32.lib")
     #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)  

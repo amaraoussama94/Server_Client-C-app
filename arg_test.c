@@ -7,6 +7,7 @@
 
 #include "arg_test.h"
 
+
 /**
  * @file arg_test.c
  * @brief  It contains all functions necessary for checking the assigned argument for the server and client..
@@ -15,14 +16,44 @@
  * @date 11/1/2022
 */
 
+/**
+ * @brief same as  linux ones ...//TODO
+ * @param[in] ......
+ * @return int 
+ * 
+*/
+#if defined(_WIN32)//for windows
+	int Inet_pton(int af, const char *src, void *dst)
+	{
+	struct sockaddr_storage ss;
+	int size = sizeof(ss);
+	char src_copy[INET6_ADDRSTRLEN+1];
 
+	ZeroMemory(&ss, sizeof(ss));
+	/* stupid non-const API */
+	strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
+	src_copy[INET6_ADDRSTRLEN] = 0;
 
+	if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+		switch(af) {
+		case AF_INET:
+		*(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+		return 1;
+		case AF_INET6:
+		*(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+		return 1;
+		}
+	}
+	return 0;
+	}
+#endif
 /**
  * @brief This function will check if the server shared directory path is valid or not. It has a "**argv" parameter..
  * @param[in]  **argv Pointer to pointer contains the name and the argument such as the path of the folder to share.
  * @return void
  * 
 */
+
 void check_dir_serv (char **argv)
 {
 	DIR* dir = opendir(argv[4]);
@@ -127,7 +158,12 @@ int isvalidport(int a)
 int isValidIpAddress(char *ipAddress)
 {
     struct sockaddr_in sa;
-    int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+	
+	#if defined(_WIN32)//for windows
+		int result = Inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+	#else 
+    	int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+	#endif
     return result  ;
 }
 

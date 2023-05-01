@@ -1,8 +1,8 @@
 
 # Application 
 app_windows  :server.c   Client.c   arg_test.c logger.c
-	gcc server.c  arg_test.c  -o Server  -lws2_32  
-	gcc Client.c  arg_test.c  -o Client  -lws2_32   
+	gcc server.c  arg_test.c  -o Server.exe  -lws2_32  
+	gcc Client.c  arg_test.c  -o Client.exe  -lws2_32   
 app_linux :server.o   Client.o   arg_test.o logger.o
 	gcc server.o logger.o arg_test.o  -o Server 
 	gcc Client.o  logger.o arg_test.o  -o Client  

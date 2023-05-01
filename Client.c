@@ -7,22 +7,42 @@
 // Last modification 2/2/2023                                                 
 // version 0.5                                                                 
 // @open issue :+ for less then 1kb file the  loading  file  bave  go so wired 
+//_WIN32  for  windows  system 
+//else it run for mac os and linux  system
 
-#include <arpa/inet.h> // inet_addr()/
-#include <netdb.h>
+
+#if defined(_WIN32)//for windows
+    #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0600
+    #endif
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "ws2_32.lib")
+	#define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
+	#include <windows.h> 
+#else//Mac and linux
+#include "logger.h"//for log file 
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <unistd.h>
+    #include <errno.h>
+	#include <strings.h>// bzero()
+	#include"logger.h"
+#endif
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>//system
 #include <string.h>
-#include <strings.h> // bzero()
-#include <sys/socket.h>
-#include <unistd.h> // read(), write(), close()
 #include "Const.h"
 #include "arg_test.h"
+
 // for mkdir function 
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include"logger.h"
+
 
 const int PROG_BAR_LENGTH =30 ;//30 caractere
 /**

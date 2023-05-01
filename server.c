@@ -31,7 +31,7 @@
 	#define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
 	#include <windows.h> 
 #else//Mac and linux
-#include "logger.h"//for log file 
+	#include "logger.h"//for log file 
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -39,11 +39,11 @@
     #include <netdb.h>
     #include <unistd.h>
     #include <errno.h>
+	#include <strings.h>// bzero()
 #endif
 #include <stdio.h>
 #include <stdlib.h>//system
 #include <string.h>
-#include <string.h>//
 #include "Const.h"
 #include "arg_test.h"
 

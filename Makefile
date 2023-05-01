@@ -30,5 +30,8 @@ logger.o:logger.c
 
 clean:
 #cleanup all object file
-	  -rm *.o $(objects) 
-	  -rm  Server Client
+	-rm *.o $(objects) 
+	-rm  Server Client
+winclean:
+#cleanup all object file
+	del *.exe

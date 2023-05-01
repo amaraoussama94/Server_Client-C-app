@@ -6,7 +6,11 @@
 
 #ifndef	_LOGGER_H
 #define	_LOGGER_H	1
-#include <syslog.h>
+#if defined(_WIN32)//for windows
+    #include "syslog-win32/syslog.h"
+#else 
+    #include <syslog.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
@@ -20,8 +24,11 @@
  * @version 1.0
  * @date 31/1/2022
 */
+#if defined(_WIN32)//for windows
 
-__BEGIN_DECLS
+#else 
+    __BEGIN_DECLS
+#endif
 
 /*
  * Logging methods by levels
@@ -50,6 +57,10 @@ void logger_reset_state(void);
 int logger_set_log_file(const char* filename, char* path);
 void logger_set_out_stdout();
 
-__END_DECLS
+#if defined(_WIN32)//for windows
+
+#else 
+    __END_DECLS
+#endif 
 
 #endif /* _LOGGER_H.h  */

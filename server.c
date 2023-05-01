@@ -3,9 +3,11 @@
 // ./Server -p Port_NBR  -d  Folder_Path   
 // ./Server --History                                   
 // @Oussama AMARA                                                              
-// Last modification 2/2/2023                                                 
+// Last modification 30/4/2023                                                 
 // version 0.5                                                                
 // @open issue : +color for  printf
+//               +windows support for logs 
+//               + update documentation
 
 /**
  * @file server.c
@@ -14,22 +16,37 @@
  * @version 0.5
  * @date 11/1/2022
 */
-#include <arpa/inet.h> // inet_addr()/
+
+//_WIN32  for  windows  system 
+//else it run for mac os and linux  system
+
+
+#if defined(_WIN32)//for windows
+    #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0600
+    #endif
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "ws2_32.lib")
+	#define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
+	#include <windows.h> 
+#else//Mac and linux
+#include "logger.h"//for log file 
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <unistd.h>
+    #include <errno.h>
+#endif
 #include <stdio.h>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <stdlib.h>//system
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h> // read(), write(), close()
-#include <errno.h>
+#include <string.h>//
 #include "Const.h"
 #include "arg_test.h"
 
-#include <string.h>//
-
-#include "logger.h"//for log file 
 
 
 /**
@@ -47,7 +64,10 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
     //int connfd=(int)*arg;
     printf("[i]Connection accepted and id: %d\n",*ptr_connfd);
     printf("[i]Connected to Client: %s:%d\n",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
-    log_status("Connected to Client: %s:%d",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
+	#if defined(_WIN32)//for windows
+	#else
+		log_status("Connected to Client: %s:%d",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
+	#endif
 	write(*ptr_connfd, fname,256);
 
     FILE *fp = fopen(fname,"rb");
@@ -55,7 +75,10 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
     {
 		printf("\033[0;31m");
         printf("[-]Can't open file %s  for transfer \n",fname);
-		log_error("Can't open file %s  for transfer ",fname);
+		#if defined(_WIN32)//for windows
+		#else
+			log_error("Can't open file %s  for transfer ",fname);
+		#endif
 		printf("\033[0m");
         exit(1);   
     }   
@@ -70,7 +93,10 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
 	//send file size to  the client 
 	write(*ptr_connfd, size, sizeof(size));
 	printf("[i]Size of the file %s to transfer is  %f Kb\n",fname,(res/1024.0));
-	log_status("Size of the file %s to transfer is  %f Kb",fname,(res/1024.0));
+	#if defined(_WIN32)//for windows
+	#else
+		log_status("Size of the file %s to transfer is  %f Kb",fname,(res/1024.0));
+	#endif
 	fseek(fp, 0, SEEK_SET);
     /******************************************/
         /* Read data from file and send it */
@@ -95,14 +121,21 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
                // printf("End of file\n");
 				printf("\033[0;32m");
 		    	printf("[+]File %s transfer completed for id: %d\n",fname,*ptr_connfd);
-				log_status("File %s transfer completed for id: %d",fname,*ptr_connfd);
+				#if defined(_WIN32)//for windows
+				#else
+					log_status("File %s transfer completed for id: %d",fname,*ptr_connfd);
+				#endif
+
 				printf("\033[0m");
 			}
             if (ferror(fp))
             {   
 				printf("\033[0;31m");
 				printf("[-]Error reading file %s for  transfer \n",fname);
-				log_error("Error reading file %s for  transfer ",fname);
+				#if defined(_WIN32)//for windows
+				#else
+					log_error("Error reading file %s for  transfer ",fname);
+				#endif	
 				printf("\033[0m");
 			}
             break;
@@ -110,11 +143,18 @@ void SendFileToClient(int *ptr_connfd,char * fname ,struct sockaddr_in cli )
     }
 	printf("\033[0;32m");
 	printf("[+]Closing Connection for id: %d\n",*ptr_connfd);
-	log_status("Closing Connection for id: %d",*ptr_connfd);
+	#if defined(_WIN32)//for windows
+	#else
+		log_status("Closing Connection for id: %d",*ptr_connfd);
+	#endif
 	printf("\033[0;31m");
 	close(*ptr_connfd);
 	//shutdown(*ptr_connfd,SHUT_WR);
-	sleep(2);
+	#if defined(_WIN32)//for windows
+		Sleep(2); 
+	#else
+		sleep(2);
+	#endif
 }
 
 /**
@@ -136,7 +176,7 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 	int  j =0;
 
 	int err ;
-	pthread_t tid; 
+	//pthread_t tid; 
 	// bzero :Set N bytes of pointer to 0.   
 	bzero(buff, MAX);//or you can use memset (&buff,'\0',sizeof(buff))
 
@@ -146,7 +186,10 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 	
 	if (strncmp("bash_list", buff, 9) == 0) 
 	{   printf("[i]The client wants information about shared folder\n ");
-		log_status("The client wants information about shared folder");
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("The client wants information about shared folder");
+		#endif
 		//| awk  '{print $1 " " $11 }'  " " : field are sparate with space , $1 et $ 11 print colom1 and 11
 		//chdir(argv[4]);// change the path 
 		strcat(cmd,argv[4]);
@@ -159,7 +202,11 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 			{
 				printf("\033[0;31m");
 				printf("[-]Error can t find list of file to share \n");
-				log_error("Error can t find list of file to share");
+				#if defined(_WIN32)//for windows
+				#else
+					log_error("Error can t find list of file to share");
+				#endif
+				
 				printf("\033[0m");
 				bzero(buff,sizeof(buff));
 				strcat(buff,"ERRORFILE1");
@@ -217,7 +264,10 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
         {
 			printf("\033[0;31m");
             printf("[-]Error can t find list of file to share \n");
+			#if defined(_WIN32)//for windows
+			#else
 			log_error("Error can t find list of file to share ");
+			#endif
 			printf("\033[0m");
             exit(1);
         }
@@ -239,7 +289,11 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 			//transfer file here 
 			chdir(argv[4]);// change the path 
 			printf( "[i]the file for transfer  name is = %s \n",buff);
-			log_status("the file for transfer  name is = %s ",buff);
+			#if defined(_WIN32)//for windows
+			#else
+				log_status("the file for transfer  name is = %s ",buff);
+			#endif
+			
 			SendFileToClient(ptr_connfd,buff ,cli );
 			//create thread  for sending the file to the client 
 			/*err = pthread_create(&tid, NULL, &SendFileToClient, ptr_connfd);
@@ -256,7 +310,11 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 			bzero(buff, sizeof(buff));
 			printf("\033[0;31m");
 			printf("[-] Client try to get file that doesn't exist in the  shared folder \n");
-			log_warning("Client try to get file that doesn't exist in the  shared folder");
+			#if defined(_WIN32)//for windows
+			#else
+				log_warning("Client try to get file that doesn't exist in the  shared folder");
+			#endif
+			
 			printf("\033[0m");
 		}
 
@@ -281,7 +339,11 @@ void create_scoket(int * sockfd)
     {
 		printf("\033[0;31m");
 		perror("[-]socket creation failed...\n");
-		log_error("socket creation failed...");
+		#if defined(_WIN32)//for windows
+		#else
+			log_error("socket creation failed...");
+		#endif
+		
 		printf("\033[0m");
 		exit(1);
 	}
@@ -289,7 +351,11 @@ void create_scoket(int * sockfd)
 	{	
 		printf("\033[0;32m");
 		printf("[+]Socket successfully created..\n");
-		log_status("Socket successfully created..");
+		#if defined(_WIN32)//for windows
+		#else
+				log_status("Socket successfully created..");
+		#endif
+
 		printf("\033[0m");
 	}
 	
@@ -310,7 +376,11 @@ void socket_bind(struct sockaddr_in *servaddr ,int * sockfd)
 	{
 		printf("\033[0;31m");
 		perror("[-]socket bind failed...\n");
-		log_error("socket bind failed...");
+		#if defined(_WIN32)//for windows
+		#else
+			log_error("socket bind failed...");
+		#endif
+		
 		printf("\033[0m");
 		exit(1);
 	}
@@ -318,7 +388,11 @@ void socket_bind(struct sockaddr_in *servaddr ,int * sockfd)
 	{	
 		printf("\033[0;32m");
 		printf("[+]Socket successfully binded..\n");
-		log_status("Socket successfully binded..");
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("Socket successfully binded..");
+		#endif
+		
 		printf("\033[0m");
 	}
 }
@@ -335,7 +409,11 @@ void socket_listening (int *sockfd)
 	{
 		printf("\033[0;31m");
 		printf("[-]Listen failed...\n");
-		log_error("Listen failed...");
+		#if defined(_WIN32)//for windows
+		#else
+			log_error("Listen failed...");
+		#endif
+		
 		printf("\033[0m");
 		exit(1);
 	}
@@ -343,7 +421,11 @@ void socket_listening (int *sockfd)
 	{	
 		printf("\033[0;32m");
 		printf("[+]Server listening..\n");
-		log_status("Server listening..");
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("Server listening..");
+		#endif
+
 		printf("\033[0m");
 	}
 }
@@ -365,7 +447,11 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 		{
 			printf("\033[0;31m");
 			perror("[-]server accept failed...\n");
-			log_error("server accept failed...");
+			#if defined(_WIN32)//for windows
+			#else
+				log_error("server accept failed...");
+			#endif
+			
 			printf("\033[0m");
 			exit(1);
 		}
@@ -373,9 +459,28 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 		{
 			printf("\033[0;32m");
 			printf("[+]server accept the client :%s:%d \n",inet_ntoa(cli->sin_addr),ntohs(cli->sin_port));
-			log_status("server accept the client :%s:%d",inet_ntoa(cli->sin_addr),ntohs(cli->sin_port));
+			#if defined(_WIN32)//for windows
+			#else
+				log_status("server accept the client :%s:%d",inet_ntoa(cli->sin_addr),ntohs(cli->sin_port));
+			#endif
+			
 			printf("\033[0m");
 		}
+}
+int  win_socket_init()
+{
+    WSADATA d;
+    if (WSAStartup(MAKEWORD(2, 2), &d)) //initialize Winsock ,MAKEWORD macro allows us to request Winsock version 2.2
+    {
+        fprintf(stderr, "Failed to initialize.\n");
+        return 1;
+    }  
+}
+void win_socket_cleanup()
+{
+	#if defined(_WIN32)
+        WSACleanup();
+    #endif
 }
 // Driver function 
 /**
@@ -398,7 +503,10 @@ int main(int argc, char **argv)
 	char ligne[1024];
 	
 	const char log_file_name [50]= "log.txt";
-
+    //must check best position 
+	#if defined(_WIN32)
+		win_socket_init();
+	#endif
 	//check argument 
 	check_arg_server(argc,argv);
 
@@ -434,10 +542,14 @@ int main(int argc, char **argv)
 	getcwd(folder_path, sizeof(folder_path)) ;
 	//printf(" the path is %s \n",folder_path);
  
-	// reset all to log  file
-	logger_reset_state();
-	// oen file for create log 
-	logger_set_log_file(log_file_name,folder_path);
+	
+	#if defined(_WIN32)//for windows
+	#else
+		// reset all to log  file
+		logger_reset_state();
+		// open file for create log 
+		logger_set_log_file(log_file_name,folder_path);
+	#endif
 
 	
 	// socket create and verification
@@ -477,7 +589,11 @@ int main(int argc, char **argv)
 			break;
 		}
 		close(connfd);
-        sleep(1);
+        #if defined(_WIN32)//for windows
+			Sleep(2); 
+		#else
+			sleep(2);
+		#endif
 		
 		
 	}
@@ -485,8 +601,13 @@ int main(int argc, char **argv)
 	// After chatting close the socket
 	close(sockfd);
 	printf("[i] Server will Shutdown  \n");
-	log_warning("Server will Shutdown ");
-	logger_reset_state();
+	#if defined(_WIN32)//for windows
+	#else
+		log_warning("Server will Shutdown ");
+	#endif
+	
+	//must  chek bes position 
+	win_socket_cleanup();
 	return 0;	
 }
  

@@ -11,3 +11,6 @@ Client
 *.jpg
 #folder for file transfered by server s
 transfer
+#ignore windows file
+*.exe
+

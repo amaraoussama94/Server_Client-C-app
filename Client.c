@@ -193,7 +193,12 @@ void share_msg(int *sockfd,char ** argv, int argc)
 
 		//get the  file 
 		char* dirname = "transfer";
-		mkdir(dirname,0755);
+		#if defined(_WIN32)//for windows
+			mkdir(dirname);
+		#else
+			mkdir(dirname,0755);
+		#endif
+		
 		//system("mkdir transfer");
 		chdir("transfer");
 		//system("cd test/");
@@ -242,7 +247,12 @@ void share_msg(int *sockfd,char ** argv, int argc)
 			update_bar(percent_done);
 			fflush(stdout);
 			fwrite(msg, 1,bytesReceived,filetransferPointer);
-			usleep(20000);//sleep for 20ms
+			#if defined(_WIN32)//for windows
+				Sleep(1); 
+			#else
+				usleep(20000);//sleep for 20ms
+			#endif
+			
 			//printf("%s \n", recvBuff);
 		}
 		printf("\n");

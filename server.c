@@ -467,6 +467,9 @@ void socket_accept (int *connfd , int* sockfd ,struct sockaddr_in*cli , int *len
 			printf("\033[0m");
 		}
 }
+
+
+//TODO doc 
 int  win_socket_init()
 {
     WSADATA d;
@@ -476,6 +479,8 @@ int  win_socket_init()
         return 1;
     }  
 }
+//TO DO Doc 
+
 void win_socket_cleanup()
 {
 	#if defined(_WIN32)

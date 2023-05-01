@@ -352,6 +352,24 @@ void socket_connect(struct sockaddr_in *servaddr ,int * sockfd)
 
 }
 
+//TODO doc 
+int  win_socket_init()
+{
+    WSADATA d;
+    if (WSAStartup(MAKEWORD(2, 2), &d)) //initialize Winsock ,MAKEWORD macro allows us to request Winsock version 2.2
+    {
+        fprintf(stderr, "Failed to initialize.\n");
+        return 1;
+    }  
+}
+//TO DO Doc 
+
+void win_socket_cleanup()
+{
+	#if defined(_WIN32)
+        WSACleanup();
+    #endif
+}
 /**
  * @brief This  function  main function will return 0 if it run succefuly. It has two parameters  " argc  " and  "  **argv ".
  * @param[in]  argc  number  of arguments  passed to the server +1 (name of the script) .
@@ -374,6 +392,10 @@ int main(int argc, char **argv)
 	char ligne[1024];
 	
 	//check argument 
+	
+	#if defined(_WIN32)//for windows
+		win_socket_init();
+	#endif
 	check_arg_client(argc,argv);
 	if(strcmp("--History", argv[1]) == 0 )
 	{
@@ -442,5 +464,7 @@ int main(int argc, char **argv)
 		log_warning("Connection with the server is closed");
 		logger_reset_state();
 	#endif
+	//must  chek bes position 
+	win_socket_cleanup();
 	return 0 ;
 }

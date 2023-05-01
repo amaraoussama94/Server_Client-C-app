@@ -141,11 +141,17 @@ void share_msg(int *sockfd,char ** argv, int argc)
 			printf("\033[0;31m");
 			printf("[-] Error server can t list file \n ");
 			printf("\033[0m");
-			log_error("Error server can t list file");
+			#if defined(_WIN32)//for windows
+			#else
+				log_error("Error server can t list file");
+			#endif
 			exit(1);
 		}
 		printf("[i]This is the list of file and  folder shared by the server : \n These are the directories  : \n" );
-		log_status(" liste the content of the  shared folder");
+		#if defined(_WIN32)//for windows
+		#else
+			log_status(" liste the content of the  shared folder");
+		#endif
 		while(1)
 		{
 			read(*sockfd, msg, sizeof(msg));
@@ -177,7 +183,10 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		if (strcmp(msg,"file_error")==0)
 		{	printf("\033[0;31m");
 			printf("[-]Please try  again ,maybe try --list first then try again ,or maybe no file has this name \n" );
-			log_warning("You try to get  a file that not mentioned in the list");
+			#if defined(_WIN32)//for windows
+			#else
+				log_warning("You try to get  a file that not mentioned in the list");
+			#endif
 			printf("\033[0m");
 			exit(1);
 		}	
@@ -194,7 +203,10 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		{
 			printf("\033[0;31m");
 			printf("[-]Error  can t  create file %s for transfer  \n",argv[6]);
-			log_error("Error  can t  create file %s for transfer ",argv[6]);
+			#if defined(_WIN32)//for windows
+			#else
+			#endif
+			
 			printf("\033[0m");
 			exit(-1);
 		}
@@ -205,7 +217,11 @@ void share_msg(int *sockfd,char ** argv, int argc)
 		//convert data to  long double
 		sscanf(size, "%Lf", &size_file);
 		printf("[i]Size of the file %s %Lf Kb \n",argv[6],size_file);
-		log_status("Size of the file %s %Lf Kb ",argv[6],size_file);
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("Size of the file %s %Lf Kb ",argv[6],size_file);
+		#endif
+		
 		/*************************************************/
 		
 		/* Receive data in chunks of 256 bytes */
@@ -236,13 +252,21 @@ void share_msg(int *sockfd,char ** argv, int argc)
 			printf("\033[0;31m");
 			printf("[-]Error  can t  create file %s to recive it  \n",argv[6]);
 			printf("\033[0m");
-			log_error("Error  can t  create file %s to recive it  ");
+			#if defined(_WIN32)//for windows
+			#else
+				log_error("Error  can t  create file %s to recive it  ");
+			#endif
+			
 		}
 		fclose(filetransferPointer);
 		printf("\033[0;32m");
 		printf("[i] file transmission %s is done you can check transfer folder   \n",argv[6]);
 		printf("\033[0m");
-		log_status("file transmission %s is done you can check transfer folder   ",argv[6]);
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("file transmission %s is done you can check transfer folder   ",argv[6]);
+		#endif
+		
 
 	}
 			
@@ -261,14 +285,21 @@ void create_scoket(int * sockfd)
     {
 		printf("\033[0;31m");
 		perror("[-]socket creation failed...\n");
-		log_error("socket creation failed...");
+		#if defined(_WIN32)//for windows
+		#else
+			log_error("socket creation failed...");
+		#endif
 		printf("\033[0;31m");
 		exit(1);
 	}
 	else
 	{	printf("\033[0;32m");
 		printf("[+]Socket successfully created..\n");
-		log_status("Socket successfully created.."); 
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("Socket successfully created.."); 
+		#endif
+		
 		printf("\033[0m");
 	}
 	
@@ -290,7 +321,10 @@ void socket_connect(struct sockaddr_in *servaddr ,int * sockfd)
     {
 		printf("\033[0;31m");
 		perror("[-]connection with the server failed...\n");
-		log_error("connection with the server failed...");
+		#if defined(_WIN32)//for windows
+		#else
+			log_error("connection with the server failed...");
+		#endif
 		printf("\033[0m");
 		exit(1);
 	}
@@ -298,7 +332,11 @@ void socket_connect(struct sockaddr_in *servaddr ,int * sockfd)
 	{
 		printf("\033[0;32m");
 		printf("[+]connected to the server.. :%s:%d \n",inet_ntoa(servaddr->sin_addr),ntohs(servaddr->sin_port));
-		log_status("connected to the server.. :%s:%d",inet_ntoa(servaddr->sin_addr),ntohs(servaddr->sin_port));
+		#if defined(_WIN32)//for windows
+		#else
+			log_status("connected to the server.. :%s:%d",inet_ntoa(servaddr->sin_addr),ntohs(servaddr->sin_port));
+		#endif
+		
 		printf("\033[0m");
 	}
 
@@ -357,14 +395,13 @@ int main(int argc, char **argv)
 	bzero(folder_path,sizeof(folder_path));
 	getcwd(folder_path, sizeof(folder_path)) ;
 	//printf(" the path is %s \n",folder_path);
- 
-	// reset all to log  file
-	logger_reset_state();
-	// oen file for create log 
-	logger_set_log_file(log_file_name,folder_path);
-
-
-	
+	#if defined(_WIN32)//for windows
+	#else
+		// reset all to log  file
+		logger_reset_state();
+		// oen file for create log 
+		logger_set_log_file(log_file_name,folder_path);
+	#endif
 	
 	// socket create and verification
 	ptr_sockfd= &sockfd;
@@ -390,7 +427,10 @@ int main(int argc, char **argv)
 	// close the socket
 	close(sockfd);
 	printf("[i] Connection with the server is closed \n");
-	log_warning("Connection with the server is closed");
-	logger_reset_state();
+	#if defined(_WIN32)//for windows
+	#else
+		log_warning("Connection with the server is closed");
+		logger_reset_state();
+	#endif
 	return 0 ;
 }

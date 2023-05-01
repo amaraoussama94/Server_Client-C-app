@@ -6,7 +6,7 @@
 // Last modification 30/4/2023                                                 
 // version 0.5                                                                
 // @open issue : +color for  printf
-//               +windows support 
+//               +windows support for logs 
 //               + update documentation
 
 /**
@@ -589,7 +589,11 @@ int main(int argc, char **argv)
 			break;
 		}
 		close(connfd);
-        sleep(1);
+        #if defined(_WIN32)//for windows
+			Sleep(2); 
+		#else
+			sleep(2);
+		#endif
 		
 		
 	}

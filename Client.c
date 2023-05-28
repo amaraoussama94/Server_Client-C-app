@@ -441,8 +441,7 @@ int main(int argc, char **argv)
         //initialize to zeo 
         // bzero :Set N bytes of pointer to 0.  
 	bzero(&servaddr, sizeof(servaddr));//or you can use memset (&servaddr,'\0', sizeof(servaddr))
-	
-	// assign IP, PORT
+	// assign IP, PORT   
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = inet_addr(argv[2]);// the adress of the serveur 
 	servaddr.sin_port = htons(atoi(argv[4]));  //htons :Functions to convert between host and network byte order

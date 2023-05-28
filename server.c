@@ -30,6 +30,7 @@
     #pragma comment(lib, "ws2_32.lib")
 	#define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
 	#include <windows.h> 
+	#include <dirent.h>// opendir 
 #else//Mac and linux
 	#include "logger.h"//for log file 
     #include <sys/types.h>
@@ -190,11 +191,28 @@ int share_msg(int* ptr_connfd,char **argv ,struct sockaddr_in cli,char* path)
 		#else
 			log_status("The client wants information about shared folder");
 		#endif
-		//| awk  '{print $1 " " $11 }'  " " : field are sparate with space , $1 et $ 11 print colom1 and 11
-		//chdir(argv[4]);// change the path 
-		strcat(cmd,argv[4]);
-		//int status = system("ls -al|awk '{print $1 " " $11}' > cmdoutput" ); 
-		int status = system(cmd); 
+		
+		#if defined(_WIN32)//for windows 
+			struct dirent *dir;
+		   // .\Script_windows.ps1 "F:" | Out-File -FilePath .\list.txt
+			DIR *d = opendir(argv[4] ); 
+			filePointer = fopen("stdout.txt", "a+");
+			if (d)
+			{
+				while ((dir = readdir(d)) != NULL)
+				{
+					printf("%s\n", dir->d_name);
+					fprintf(filePointer, "Dir name: %s\n", dir->d_name);
+				}
+				closedir(d);
+			}
+		#else
+			//| awk  '{print $1 " " $11 }'  " " : field are sparate with space , $1 et $ 11 print colom1 and 11
+			//chdir(argv[4]);// change the path 
+			strcat(cmd,argv[4]);
+			//int status = system("ls -al|awk '{print $1 " " $11}' > cmdoutput" );
+			int status = system(cmd); 
+		#endif
 		//open file 
 		filePointer = fopen("stdout.txt", "r");
 		//ste the psotion of the  pointer at the bening of the file

@@ -7,11 +7,12 @@ try {
     Write-Host "`nFile Name::" $i.Name
     Write-Host "File Path::" $i.Path
     }
-    foreach ($i in $folder.subfolders) {
-    getAllFile($i.path)
+    #foreach ($i in $folder.subfolders) {
+    #getAllFile($i.path)
+    #}
     }
-    }
-    getAllFile "F:"
+    $path =$args[0]
+    getAllFile($path)
     }
     catch {
     Write-Host "`n Error:: $($_.Exception.Message)" -ForegroundColor Red -BackgroundColor Yellow

@@ -10,7 +10,6 @@
 //_WIN32  for  windows  system 
 //else it run for mac os and linux  system
 
-
 #if defined(_WIN32)//for windows
     #ifndef _WIN32_WINNT
     #define _WIN32_WINNT 0x0600

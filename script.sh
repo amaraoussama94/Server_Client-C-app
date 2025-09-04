@@ -1,3 +1,4 @@
+#"script.sh
 #!/bin/sh
 #change output to your  working folder 
 output=~/Desktop/github_tes_dev/stdout.txt

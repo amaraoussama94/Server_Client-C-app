@@ -28,16 +28,40 @@ This project is a cross-platform (Windows/Linux) server-client system designed t
 ```plaintext
 project-root/
 ├── include/              # Header files
-├── src/                  # Source files
-│   ├── server/           # Server logic
-│   ├── client/           # Client logic
-│   ├── protocol/         # Command parsing & framing
-│   ├── features/         # Chat, file transfer, game
-│   ├── utils/            # Logging, platform helpers
+│   ├── server.h
+│   ├── client.h
+│   ├── protocol.h
+│   ├── file_transfer.h
+│   ├── chat.h
+│   ├── game.h
+│   ├── logger.h
+│   ├── platform.h
+│   └── config.h
+├── src/
+│   ├── server/
+│   │   ├── main.c
+│   │   ├── dispatcher.c
+│   │   ├── connection.c
+│   ├── client/
+│   │   ├── main.c
+│   │   ├── file_client.c
+│   │   ├── chat_client.c
+│   ├── protocol/
+│   │   ├── protocol.c
+│   │   ├── parser.c
+│   ├── features/
+│   │   ├── file_transfer.c
+│   │   ├── chat.c
+│   │   ├── game.c
+│   ├── utils/
+│   │   ├── logger.c
+│   │   ├── platform.c
+│   │   ├── config.c
 ├── assets/               # Shared files
 ├── scripts/              # Bash & PowerShell scripts
 ├── Makefile              # Build automation
-└── README.md             # This file
+└── README.md             # Project roadmap
+
 ```
 ## ✅ Current Features
 
@@ -119,3 +143,5 @@ Methodical, inclusive, and passionate about technical and cultural organization.
 Focused on clarity, completeness, and accessibility in all systems.
 
 ---
+
+

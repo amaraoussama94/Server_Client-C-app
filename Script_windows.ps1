@@ -1,3 +1,5 @@
+
+#script_windows.ps1
 try {
     function getAllFile([string]$path) {
     $fc = new-object -com scripting.filesystemobject

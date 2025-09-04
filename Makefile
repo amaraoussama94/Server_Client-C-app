@@ -1,37 +1,27 @@
+CC = gcc
+CFLAGS = -Wall -Wextra -Iinclude
+SRC_DIR = src
+OBJ_DIR = build
 
-# Application 
-app_windows  :server.c   Client.c   arg_test.c logger.c
-	gcc server.c  arg_test.c  -o Server.exe  -lws2_32  
-	gcc Client.c  arg_test.c  -o Client.exe  -lws2_32   
-app_linux :server.o   Client.o   arg_test.o logger.o
-	gcc server.o logger.o arg_test.o  -o Server 
-	gcc Client.o  logger.o arg_test.o  -o Client  
-	 
-#serveur
+SRCS = $(wildcard $(SRC_DIR)/**/*.c)
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-server.o:server.c
-	gcc -c server.c
+TARGET_SERVER = server
+TARGET_CLIENT = client
 
-#Client
+.PHONY: all clean
 
-Client.o:Client.c
-	gcc -c Client.c
+all: $(TARGET_SERVER) $(TARGET_CLIENT)
 
-#test argument of shell
+$(TARGET_SERVER): $(OBJS)
+    $(CC) $(CFLAGS) -o $@ $(filter %server/%.o %features/%.o %protocol/%.o %utils/%.o,$(OBJS))
 
-arg_test.o:arg_test.c
-	gcc -c arg_test.c
+$(TARGET_CLIENT): $(OBJS)
+    $(CC) $(CFLAGS) -o $@ $(filter %client/%.o %protocol/%.o %utils/%.o,$(OBJS))
 
-# create log  file 
-#Client
-
-logger.o:logger.c
-	gcc -c logger.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+    @mkdir -p $(dir $@)
+    $(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-#cleanup all object file
-	-rm *.o $(objects) 
-	-rm  Server Client
-winclean:
-#cleanup all object file
-	del *.exe
+    rm -rf $(OBJ_DIR) $(TARGET_SERVER) $(TARGET_CLIENT)

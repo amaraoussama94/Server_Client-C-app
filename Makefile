@@ -14,14 +14,14 @@ TARGET_CLIENT = client
 all: $(TARGET_SERVER) $(TARGET_CLIENT)
 
 $(TARGET_SERVER): $(OBJS)
-    $(CC) $(CFLAGS) -o $@ $(filter %server/%.o %features/%.o %protocol/%.o %utils/%.o,$(OBJS))
+	$(CC) $(CFLAGS) -o $@ $(filter %server/%.o %features/%.o %protocol/%.o %utils/%.o,$(OBJS))
 
 $(TARGET_CLIENT): $(OBJS)
-    $(CC) $(CFLAGS) -o $@ $(filter %client/%.o %protocol/%.o %utils/%.o,$(OBJS))
+	$(CC) $(CFLAGS) -o $@ $(filter %client/%.o %protocol/%.o %utils/%.o,$(OBJS))
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-    @mkdir -p $(dir $@)
-    $(CC) $(CFLAGS) -c $< -o $@
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -rf $(OBJ_DIR) $(TARGET_SERVER) $(TARGET_CLIENT)
+	rm -rf $(OBJ_DIR) $(TARGET_SERVER) $(TARGET_CLIENT)

@@ -1,66 +1,33 @@
-
-// This  header file for log creation                                        
-// @Oussama AMARA                                                              
-// Last modification 1/2/2023                                               
-// version 1.0                                                               
-
-#ifndef	_LOGGER_H
-#define	_LOGGER_H	1
-#if defined(_WIN32)//for windows
-   // #include "syslog-win32/syslog.h"
-#else 
-    #include <syslog.h>
-#endif
-#include <stdio.h>
-#include <errno.h>
-#include <time.h>
-#include <stdarg.h>
-#include <string.h>
-
 /**
  * @file logger.h
- * @brief  This is the header file containing all the function declarations to create  history(log) for both  client and  server .
- * @author oussama amara
- * @version 1.0
- * @date 31/1/2022
-*/
-#if defined(_WIN32)//for windows
-
-#else 
-    __BEGIN_DECLS
-#endif
-
-/*
- * Logging methods by levels
+ * @brief Logging utilities with configurable verbosity and output targets (console, file, etc.). Supports cross-platform formatting and timestamps.
+ * @author Oussama Amara
+ * @version 0.5
+ * @date 2025-09-04
  */
-void log_error(char* format, ...);
-void log_warning(char* format, ...);
-void log_status(char* format, ...);
-void log_debug(char* format, ...);
 
-/*
- * Log level configurator
- * Default is LOG_MAX_LEVEL_ERROR_WARNING_STATUS
- */ 
+#ifndef LOGGER_H
+#define LOGGER_H
 
-#define LOG_MAX_LEVEL_ERROR 0
-#define LOG_MAX_LEVEL_ERROR_WARNING_STATUS 1
-#define LOG_MAX_LEVEL_ERROR_WARNING_STATUS_DEBUG 2
+typedef enum {
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR
+} LogLevel;
 
-void logger_set_log_level(const int level);
-
-/*
- * Set target type
- * Default is syslog
+/**
+ * @brief Initializes the logger with a given verbosity level.
+ * @param[in] level Minimum log level to display.
  */
-void logger_reset_state(void);
-int logger_set_log_file(const char* filename, char* path);
-void logger_set_out_stdout();
+void init_logger(LogLevel level);
 
-#if defined(_WIN32)//for windows
+/**
+ * @brief Logs a formatted message at the specified level.
+ * @param[in] level Log severity level.
+ * @param[in] fmt Format string (printf-style).
+ * @param[in] ... Variable arguments.
+ */
+void log_message(LogLevel level, const char* fmt, ...);
 
-#else 
-    __END_DECLS
-#endif 
-
-#endif /* _LOGGER_H.h  */
+#endif // LOGGER_H

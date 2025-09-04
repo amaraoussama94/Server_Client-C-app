@@ -9,10 +9,22 @@
 
 #ifndef CONFIG_H
 #define CONFIG_H
+/**
+ * @brief Configuration structure holding runtime settings.
+ */
+typedef struct {
+    char host[64];   ///< Server hostname or IP
+    int port;        ///< Server port
+    int enable_chat; ///< Feature toggle for chat
+    int enable_game; ///< Feature toggle for game
+    int enable_file; ///< Feature toggle for file transfer
+} Config;
+
 
 /**
  * @brief Loads configuration from file or environment.
  * @param[in] path Path to config file.
+ * @param[out] cfg Pointer to Config struct to populate.
  * @return 0 on success, -1 on failure.
  */
 int load_config(const char* path, Config* cfg);

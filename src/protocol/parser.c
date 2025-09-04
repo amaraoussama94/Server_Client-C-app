@@ -3,7 +3,7 @@
  * @brief Parses raw input into structured command format.
  */
 
-#include "parser.h"
+#include "protocol.h"
 #include "logger.h"
 #include <string.h>
 #include <stdlib.h>

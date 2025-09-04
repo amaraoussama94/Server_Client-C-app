@@ -9,7 +9,17 @@
 #ifndef FILE_TRANSFER_H
 #define FILE_TRANSFER_H
 
-#include <netinet/in.h>
+#ifdef _WIN32
+  #include <winsock2.h>
+  #pragma comment(lib, "ws2_32.lib")
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 
 /**
  * @brief Sends a file to the connected client.

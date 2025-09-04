@@ -29,4 +29,9 @@ typedef struct {
  */
 int parse_command(const char* raw_msg, ParsedCommand* cmd);
 
+/**
+ * @brief Frees memory allocated for a ParsedCommand.
+ * @param cmd Pointer to ParsedCommand
+ */
+void free_parsed_command(ParsedCommand* cmd);
 #endif // PROTOCOL_H

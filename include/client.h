@@ -9,6 +9,15 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#ifdef _WIN32
+  #include <winsock2.h>
+  #pragma comment(lib, "ws2_32.lib")
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+#endif
+
 /**
  * @brief Starts the client with the given arguments.
  * @param[in] argc Argument count.

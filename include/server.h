@@ -9,7 +9,15 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <netinet/in.h>
+#ifdef _WIN32
+  #include <winsock2.h>
+  #pragma comment(lib, "ws2_32.lib")
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+#endif
+
 
 /**
  * @brief Starts the server with the given arguments.

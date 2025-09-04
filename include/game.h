@@ -9,6 +9,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "protocol.h"
 /**
  * @brief Initializes game state and resources.
  */

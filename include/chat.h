@@ -8,7 +8,14 @@
 
 #ifndef CHAT_H
 #define CHAT_H
-
+#ifdef _WIN32
+  #include <winsock2.h>
+  #pragma comment(lib, "ws2_32.lib")
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+#endif
 /**
  * @brief Sends a chat message to the client.
  * @param[in] connfd Socket descriptor.

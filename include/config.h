@@ -15,7 +15,7 @@
  * @param[in] path Path to config file.
  * @return 0 on success, -1 on failure.
  */
-int load_config(const char* path);
+int load_config(const char* path, Config* cfg);
 
 /**
  * @brief Retrieves a configuration value by key.

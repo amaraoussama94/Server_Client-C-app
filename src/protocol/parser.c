@@ -6,7 +6,6 @@
 #include "protocol.h"
 #include "logger.h"
 #include <string.h>
-#include <stdlib.h>
 
 int parse_command(const char* input, ParsedCommand* cmd) {
     if (!input || !cmd) return -1;
@@ -27,13 +26,13 @@ int parse_command(const char* input, ParsedCommand* cmd) {
         cmd->args[i][sizeof(cmd->args[i]) - 1] = '\0';
         i++;
     }
-    cmd->arg_count = i;
 
+    cmd->arg_count = i;
     log_message(LOG_DEBUG, "Parsed command: %s", cmd->command);
     return 0;
 }
 
 void free_parsed_command(ParsedCommand* cmd) {
-    // No dynamic memory to free
+    // No dynamic memory used
     (void)cmd;
 }

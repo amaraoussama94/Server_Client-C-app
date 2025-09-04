@@ -18,3 +18,11 @@ void sleep_ms(int milliseconds) {
     usleep(milliseconds * 1000);
 #endif
 }
+const char* get_temp_dir() {
+#ifdef _WIN32
+    return getenv("TEMP") ? getenv("TEMP") : "C:\\Temp";
+#else
+    return "/tmp";
+#endif
+}
+

@@ -1,3 +1,5 @@
+# Makefile for building server and client applications
+
 CC = gcc
 CFLAGS = -Wall -Wextra -Iinclude
 SRC_DIR = src

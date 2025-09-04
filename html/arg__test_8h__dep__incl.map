@@ -1,6 +1,0 @@
-<map id="/home/oussama.amara@sofia.local/Desktop/test&#45;dev/arg_test.h" name="/home/oussama.amara@sofia.local/Desktop/test&#45;dev/arg_test.h">
-<area shape="rect" id="node1" title="This is the header file containing all the function declarations to verify the argument for the serve..." alt="" coords="201,5,373,61"/>
-<area shape="rect" id="node2" href="$arg__test_8c.html" title="It contains all functions necessary for checking the assigned argument for the server and client...." alt="" coords="5,109,177,165"/>
-<area shape="rect" id="node3" href="$_client_8c.html" title="This is the client side, after connecting to the server, using the passed argument the client will se..." alt="" coords="201,109,373,165"/>
-<area shape="rect" id="node4" href="$server_8c.html" title="This is the server side, it should run all time waiting for client to connect. The server has two arg..." alt="" coords="397,109,569,165"/>
-</map>

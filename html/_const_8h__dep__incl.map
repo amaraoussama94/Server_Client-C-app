@@ -1,7 +1,0 @@
-<map id="/home/oussama.amara@sofia.local/Desktop/test&#45;dev/Const.h" name="/home/oussama.amara@sofia.local/Desktop/test&#45;dev/Const.h">
-<area shape="rect" id="node1" title="This header file includes all the constant variables used in this project.." alt="" coords="201,5,373,61"/>
-<area shape="rect" id="node2" href="$arg__test_8h.html" title="This is the header file containing all the function declarations to verify the argument for the serve..." alt="" coords="201,109,373,165"/>
-<area shape="rect" id="node4" href="$_client_8c.html" title="This is the client side, after connecting to the server, using the passed argument the client will se..." alt="" coords="5,213,177,269"/>
-<area shape="rect" id="node5" href="$server_8c.html" title="This is the server side, it should run all time waiting for client to connect. The server has two arg..." alt="" coords="397,213,569,269"/>
-<area shape="rect" id="node3" href="$arg__test_8c.html" title="It contains all functions necessary for checking the assigned argument for the server and client...." alt="" coords="201,213,373,269"/>
-</map>

@@ -5,6 +5,8 @@
 
 #include "protocol.h"
 #include "logger.h"
+#include <string.h>
+#include <stdio.h>
 
 void encode_message(const char* raw, char* encoded) {
     snprintf(encoded, 1024, "[ENCODED]%s", raw);

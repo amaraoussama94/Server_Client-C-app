@@ -7,6 +7,7 @@
 #include "logger.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 int load_config(const char* path, Config* cfg) {
     FILE* file = fopen(path, "r");

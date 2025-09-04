@@ -13,7 +13,7 @@
 #include "file_transfer.h"
 #include "logger.h"
 
-void dispatch_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
+void dispatch_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli)  {
     if (!cmd) return;
 
     if (cmd->arg_count < 1) {

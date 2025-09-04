@@ -9,7 +9,15 @@
 #ifndef DISPATCHER_H
 #define DISPATCHER_H
 
-#include "protocol.h"
+#include "protocol.h"   
+#ifdef _WIN32
+  #include <winsock2.h>
+  #pragma comment(lib, "ws2_32.lib")
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+#endif
 /**
  * @brief Dispatches parsed commands to appropriate feature handlers.
  * @param cmd Pointer to the parsed command structure.

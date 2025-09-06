@@ -20,7 +20,7 @@ typedef enum {
  * @brief Initializes the logger with a given verbosity level.
  * @param[in] level Minimum log level to display.
  */
-void init_logger(LogLevel level);
+void set_log_level(LogLevel level);
 
 /**
  * @brief Logs a formatted message at the specified level.

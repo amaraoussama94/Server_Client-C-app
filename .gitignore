@@ -1,16 +1,7 @@
 #list of  files  to be  ignore  by the git 
 *.vscode
-*.o
-stdout
-cmdoutput
-Server
-Client
+build/
+*.log
+*.tmp
 
-*.txt
-*.odt
-*.jpg
-#folder for file transfered by server s
-transfer
-#ignore windows file
-*.exe
 

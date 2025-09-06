@@ -1,5 +1,5 @@
-#!/bin/bash
-# Run client with optional config
+#win powershell
+# Run serveur  with optional config
 
-CONFIG=${1:-assets/client.cfg}
-./client "$CONFIG"
+CONFIG=${1:-../assets/server.cfg}
+../build/bin/server.exe "$CONFIG"

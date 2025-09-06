@@ -2,4 +2,4 @@
 # Run server with optional config
 
 CONFIG=${1:-assets/server.cfg}
-./server "$CONFIG"
+../build/bin/server "$CONFIG"

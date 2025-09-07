@@ -118,25 +118,29 @@ make
 
 ### Overview
 
-The protocol layer defines how commands are encoded, transmitted, and interpreted between client
-and server. It ensures consistent parsing, validation, and dispatching of messages across platforms.
+The protocol layer defines how commands are encoded, transmitted, and interpreted between client and server. It ensures consistent parsing, validation, and dispatching of messages across platforms.
 
 ### Composition
 
-- **Raw Input**: Commands are sent as plain strings (e.g., `"chat Hello"` or `"file assets/data.txt"`).
+- **Raw Input**: Raw Input: Commands are sent as structured strings (e.g., "A1B2|msg|Hello|EOC")
 - **Tokenizer**: `parse_command()` splits input into:
-  - `command`: main verb (e.g., `"chat"`)
-  - `args[]`: array of arguments
+  -  `crc `: checksum
+
+  - `option`: feature type
+
+  - `payload`: message, file path, or game move
+
+  - `end`: end-of-command marker
 - **Struct**: Parsed data is stored in a `ParsedCommand` struct:
-  ```c
+```c
   typedef struct {
       char command[32];
       char args[MAX_ARGS][128];
       int argc;
   } ParsedCommand;
- ```
+```
 
-Validation: Each command is validated for argument count and type.
+- Validation: Each command is validated for argument count and type.
 
 Dispatch: dispatch_command() routes to the correct handler:
 

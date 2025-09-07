@@ -80,7 +80,63 @@ project-root/
 | 🚀 Scripts       | Bash and PowerShell scripts for build/run automation                        |
 
 ```
+
+## 🧠 Modular Client-Server Protocol
+
+This system now supports multi-port routing and feature-specific client connections, enabling scalable and modular communication.
+
+### 🔀 Protocol Overview
+Each command follows a structured format:
+
+```Code
+<CRC>|<OPTION>|<PAYLOAD>|EOC
+```
+- CRC → Checksum or integrity marker
+
+- OPTION → Feature type (msg, file, game)
+
+- PAYLOAD → Message, file path, or game command
+
+- EOC → End-of-command delimiter
+
+### 🧩 Multi-Port Architecture
+The server listens on dedicated ports for each feature:
+
+```Text
+| Port	 | Feature	  | Description                             | 
+-----------------------------------------------------------------
+| 8081	 | 💬 Chat	 | Real-time message exchange               | 
+| 8082	 | 📁 File   | Transfer	File request and delivery       | 
+| 8083	 | 🎮 Game   | Logic	Game command handling (stubbed) | 
+
+```
+Clients connect to the appropriate port based on their mode, ensuring clean separation and simplified routing.
+
+### 🧠 Client Modes
+Clients specify their mode via config or CLI:
+
+```bash
+./client --mode file --config assets/client.cfg
+```
+Supported modes:
+
+- msg → Chat
+
+- file → File transfer
+
+- game → Game logic (TBD)
+
+###  🛡️ Benefits
+
+- 🔄 Scalable: Easily add new features with dedicated ports
+
+- 🧼 Maintainable: Each feature lives in its own module
+
+- 🧪 Testable: Simulate feature-specific clients independently
+
+- 🧠 Intuitive: Clear protocol structure for contributors
 ## 📚 Documentation
+
 All modules are documented using Doxygen-style comments. Run doxygen to generate HTML docs if configured.
 
 ## 🤝 Contributing

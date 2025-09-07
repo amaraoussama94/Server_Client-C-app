@@ -20,6 +20,9 @@
 #include <stdlib.h>
 
 int load_config(const char* path, Config* cfg) {
+    /**
+     * load  default values for host and ports
+     */
     strncpy(cfg->host, "127.0.0.1", sizeof(cfg->host) - 1);
     cfg->host[sizeof(cfg->host) - 1] = '\0';
 
@@ -27,7 +30,9 @@ int load_config(const char* path, Config* cfg) {
     cfg->port_chat = 8081;   // Default server ports
     cfg->port_file = 8082;
     cfg->port_game = 8083;
-
+    /**
+     *  ovveride default values with config file if it exists
+     */
     FILE* file = fopen(path, "r");
     if (!file) {
         log_message(LOG_ERROR, "Failed to open config file: %s", path);

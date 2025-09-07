@@ -5,7 +5,7 @@
  *        Accepts incoming TCP connections on dedicated ports for chat, file, and game features.
  *        Routes each connection to the appropriate dispatcher module.
  * @author Oussama Amara
- * @version 0.7
+ * @version 0.9
  * @date 2025-09-07
  */
 
@@ -27,15 +27,11 @@
 #include <unistd.h>
 #endif
 
-/*
- * Flag to control server loop and support graceful shutdown.
- */
+/// Flag to control server loop and support graceful shutdown.
 volatile sig_atomic_t server_running = 1;
-
 
 /**
  * @brief Signal handler for SIGINT (Ctrl+C).
- *        Sets shutdown flag and logs shutdown intent.
  * @param sig Signal number.
  */
 void handle_sigint(int sig) {
@@ -57,8 +53,6 @@ int run_server(int argc, char** argv) {
         return 1;
     }
 
-    log_message(LOG_INFO, "Attempting to load config from: %s", argv[1]);
-
     Config cfg;
     if (load_config(argv[1], &cfg) != 0) {
         fprintf(stderr, "[-] Failed to load server config.\n");
@@ -66,37 +60,29 @@ int run_server(int argc, char** argv) {
     }
 
     set_log_level(LOG_INFO);
-    log_message(LOG_INFO, "Initializing multi-port server...");
-
-    signal(SIGINT, handle_sigint); // Register shutdown handler
-
+    signal(SIGINT, handle_sigint);
     win_socket_init();
 
-    int ports[3] = { PORT_CHAT, PORT_FILE, PORT_GAME };
+    int ports[3] = { cfg.port_chat, cfg.port_file, cfg.port_game };
     int sockfds[3];
 
-    struct sockaddr_in servaddr;
-
-    /**
-     * @brief Create and bind sockets for each feature port.
-     */
+    // Create and bind sockets for each feature port
     for (int i = 0; i < 3; ++i) {
         create_socket(&sockfds[i]);
 
+        struct sockaddr_in servaddr;
         memset(&servaddr, 0, sizeof(servaddr));
         servaddr.sin_family = AF_INET;
-        servaddr.sin_addr.s_addr = INADDR_ANY;
+        servaddr.sin_addr.s_addr = inet_addr(cfg.host);
         servaddr.sin_port = htons(ports[i]);
 
         socket_bind(&servaddr, &sockfds[i]);
         socket_listening(&sockfds[i]);
 
-        log_message(LOG_INFO, "Listening on port %d", ports[i]);
+        log_message(LOG_INFO, "Listening on %s:%d", cfg.host, ports[i]);
     }
 
-    /**
-     * @brief Main server loop: accepts clients on each port, parses commands, and dispatches to correct feature.
-     */
+    // Main server loop: accept and dispatch connections
     while (server_running) {
         for (int i = 0; i < 3; ++i) {
             struct sockaddr_in cli;
@@ -109,9 +95,9 @@ int run_server(int argc, char** argv) {
             if (received <= 0) {
                 log_message(LOG_WARN, "Failed to receive data or client disconnected.");
                 #ifdef _WIN32
-                    closesocket(sockfds[i]);
+                    closesocket(connfd);
                 #else
-                    close(sockfds[i]);
+                    close(connfd);
                 #endif
                 continue;
             }
@@ -122,28 +108,26 @@ int run_server(int argc, char** argv) {
 
             ParsedCommand cmd;
             if (parse_command(buffer, &cmd) == 0) {
-                if (ports[i] == PORT_CHAT) {
+                if (ports[i] == cfg.port_chat) {
                     dispatch_chat_command(&cmd, connfd, cli);
-                } else if (ports[i] == PORT_FILE) {
+                } else if (ports[i] == cfg.port_file) {
                     dispatch_file_command(&cmd, connfd, cli);
-                } else if (ports[i] == PORT_GAME) {
+                } else if (ports[i] == cfg.port_game) {
                     dispatch_game_command(&cmd, connfd, cli);
                 } else {
                     log_message(LOG_WARN, "Unknown port: %d", ports[i]);
                 }
             }
 
-        #ifdef _WIN32
-            closesocket(connfd);
-        #else
-            close(connfd);
-        #endif
+            #ifdef _WIN32
+                closesocket(connfd);
+            #else
+                close(connfd);
+            #endif
         }
     }
 
-    /**
-     * @brief Cleanup: close all sockets and release resources.
-     */
+    // Cleanup: close all sockets
     for (int i = 0; i < 3; ++i) {
         #ifdef _WIN32
             closesocket(sockfds[i]);
@@ -159,7 +143,6 @@ int run_server(int argc, char** argv) {
 
 /**
  * @brief Entry point for the server application.
- *        Delegates to run_server().
  * @param argc Argument count.
  * @param argv Argument vector.
  * @return Exit code from run_server().

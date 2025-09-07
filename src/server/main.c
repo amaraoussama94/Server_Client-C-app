@@ -1,10 +1,11 @@
 /**
  * @file server.c
- * @brief Implements the main server logic: socket setup, config loading, signal handling, and client dispatch loop.
+ * @brief Implements the main server logic: multi-port socket setup, config loading, signal handling, and feature dispatch loop.
  *        Supports graceful shutdown via SIGINT and ensures port reuse with SO_REUSEADDR.
- *        Accepts incoming TCP connections, parses commands, and dispatches to feature modules.
+ *        Accepts incoming TCP connections on dedicated ports for chat, file, and game features.
+ *        Routes each connection to the appropriate dispatcher module.
  * @author Oussama Amara
- * @version 0.6
+ * @version 0.7
  * @date 2025-09-07
  */
 
@@ -26,8 +27,11 @@
 #include <unistd.h>
 #endif
 
-/// Flag to control server loop and support graceful shutdown.
+/*
+ * Flag to control server loop and support graceful shutdown.
+ */
 volatile sig_atomic_t server_running = 1;
+
 
 /**
  * @brief Signal handler for SIGINT (Ctrl+C).
@@ -42,7 +46,7 @@ void handle_sigint(int sig) {
 
 /**
  * @brief Runs the server application.
- *        Loads configuration, sets up socket, and enters client dispatch loop.
+ *        Loads configuration, sets up sockets for each feature, and enters dispatch loop.
  * @param argc Argument count.
  * @param argv Argument vector. Expects argv[1] to be path to config file.
  * @return 0 on success, non-zero on failure.
@@ -62,67 +66,82 @@ int run_server(int argc, char** argv) {
     }
 
     set_log_level(LOG_INFO);
-    log_message(LOG_INFO, "Starting server on %s:%d", cfg.host, cfg.port);
+    log_message(LOG_INFO, "Initializing multi-port server...");
 
     signal(SIGINT, handle_sigint); // Register shutdown handler
 
-    int sockfd, connfd;
-    struct sockaddr_in servaddr, cli;
-    int len = sizeof(cli);
-
     win_socket_init();
-    create_socket(&sockfd); // Includes SO_REUSEADDR
 
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(cfg.port);
+    int ports[3] = { PORT_CHAT, PORT_FILE, PORT_GAME };
+    int sockfds[3];
 
-    socket_bind(&servaddr, &sockfd);
-    socket_listening(&sockfd);
+    struct sockaddr_in servaddr;
 
     /**
-     * @brief Main server loop: accepts clients, receives messages, and dispatches commands.
-     *        Loop exits cleanly when SIGINT is received.
+     * @brief Create and bind sockets for each feature port.
      */
-    while (server_running) {
-        socket_accept(&connfd, &sockfd, &cli, &len);
+    for (int i = 0; i < 3; ++i) {
+        create_socket(&sockfds[i]);
 
-        char buffer[1024] = {0};
-        int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
-        if (received <= 0) {
-            log_message(LOG_WARN, "Failed to receive data or client disconnected.");
-        #ifdef _WIN32
-            closesocket(connfd);
-        #else
-            close(connfd);
-        #endif
-            continue;
-        }
-        buffer[received] = '\0';
+        memset(&servaddr, 0, sizeof(servaddr));
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_addr.s_addr = INADDR_ANY;
+        servaddr.sin_port = htons(ports[i]);
 
-        char* ip = inet_ntoa(cli.sin_addr);
-        log_message(LOG_INFO, "Received data from %s", ip);
+        socket_bind(&servaddr, &sockfds[i]);
+        socket_listening(&sockfds[i]);
 
-        ParsedCommand cmd;
-        if (parse_command(buffer, &cmd) == 0) {
-            dispatch_command(&cmd, connfd, cli);
-        }
-
-    #ifdef _WIN32
-        closesocket(connfd);
-    #else
-        close(connfd);
-    #endif
+        log_message(LOG_INFO, "Listening on port %d", ports[i]);
     }
 
-#ifdef _WIN32
-    closesocket(sockfd);
-#else
-    close(sockfd);
-#endif
+    /**
+     * @brief Main server loop: accepts clients on each port, parses commands, and dispatches to correct feature.
+     */
+    while (server_running) {
+        for (int i = 0; i < 3; ++i) {
+            struct sockaddr_in cli;
+            int len = sizeof(cli);
+            int connfd = accept(sockfds[i], (struct sockaddr*)&cli, &len);
+            if (connfd < 0) continue;
+
+            char buffer[1024] = {0};
+            int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
+            if (received <= 0) {
+                log_message(LOG_WARN, "Failed to receive data or client disconnected.");
+                close(connfd);
+                continue;
+            }
+            buffer[received] = '\0';
+
+            char* ip = inet_ntoa(cli.sin_addr);
+            log_message(LOG_INFO, "Received data on port %d from %s", ports[i], ip);
+
+            ParsedCommand cmd;
+            if (parse_command(buffer, &cmd) == 0) {
+                if (ports[i] == PORT_CHAT) {
+                    dispatch_chat_command(&cmd, connfd, cli);
+                } else if (ports[i] == PORT_FILE) {
+                    dispatch_file_command(&cmd, connfd, cli);
+                } else if (ports[i] == PORT_GAME) {
+                    dispatch_game_command(&cmd, connfd, cli);
+                } else {
+                    log_message(LOG_WARN, "Unknown port: %d", ports[i]);
+                }
+            }
+
+            close(connfd);
+        }
+    }
+
+    /**
+     * @brief Cleanup: close all sockets and release resources.
+     */
+    for (int i = 0; i < 3; ++i) {
+        close(sockfds[i]);
+    }
 
     win_socket_cleanup();
-    log_message(LOG_INFO, "Server shutdown complete. Socket released.");
+    log_message(LOG_INFO, "Server shutdown complete. All ports released.");
     return 0;
 }
 

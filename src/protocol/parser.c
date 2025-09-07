@@ -2,17 +2,21 @@
  * @file parser.c
  * @brief Parses raw input into structured command format.
  *        Supports CRC-tagged, feature-specific protocol: <CRC>|<OPTION>|<PAYLOAD>|EOC
+ *        Validates CRC integrity before dispatching.
+ * @author Oussama Amara
+ * @version 0.6
+ * @date 2025-09-07
  */
-/**
- * // TODO: Add CRC validation if needed
- */
+
 #include "protocol.h"
 #include "logger.h"
+#include "crc.h"
 #include <string.h>
 
 /**
  * @brief Parses a structured message into ParsedCommand.
  *        Format: <CRC>|<OPTION>|<PAYLOAD>|EOC
+ *        Validates CRC before accepting the command.
  * @param input Raw input string.
  * @param cmd Output command structure.
  * @return 0 on success, -1 on failure.
@@ -38,7 +42,7 @@ int parse_command(const char* input, ParsedCommand* cmd) {
         return -1;
     }
 
-    const char* crc = tokens[0];
+    const char* received_crc = tokens[0];
     const char* option = tokens[1];
     const char* payload = tokens[2];
     const char* end = tokens[3];
@@ -48,7 +52,12 @@ int parse_command(const char* input, ParsedCommand* cmd) {
         return -1;
     }
 
-    
+    char expected_crc[8];
+    generate_crc(payload, expected_crc);
+    if (strcmp(received_crc, expected_crc) != 0) {
+        log_message(LOG_WARN, "CRC mismatch: received=%s, expected=%s", received_crc, expected_crc);
+        return -1;
+    }
 
     strncpy(cmd->command, option, sizeof(cmd->command) - 1);
     cmd->command[sizeof(cmd->command) - 1] = '\0';
@@ -58,7 +67,7 @@ int parse_command(const char* input, ParsedCommand* cmd) {
 
     cmd->arg_count = 1;
 
-    log_message(LOG_DEBUG, "Parsed command: %s | Payload: %s", cmd->command, cmd->args[0]);
+    log_message(LOG_DEBUG, "Parsed command: %s | Payload: %s | CRC validated", cmd->command, cmd->args[0]);
     return 0;
 }
 

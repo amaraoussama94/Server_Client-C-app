@@ -3,6 +3,7 @@
  * @brief Implements protocol logic for encoding and decoding messages.
  */
 
+ // to do build and  encode decode  protocole should be here parse should be  rleated  to check and msg
 #include "protocol.h"
 #include "logger.h"
 #include <string.h>

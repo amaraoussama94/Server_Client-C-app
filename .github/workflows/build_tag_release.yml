@@ -1,9 +1,19 @@
+# /**
+#  * @file build-release.yml
+#  * @brief GitHub Actions workflow for cross-platform build and automated tagging after pull request merges.
+#  *        Builds Windows and Linux binaries, packages artifacts, and creates a timestamped tag.
+#  *        Triggered on push to master (typically after PR merge).
+#  * @author Oussama Amara
+#  * @version 1.0
+#  * @date 2025-09-07
+#  */
+
 name: Cross-Platform Build & Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 jobs:
   build-windows:
@@ -69,18 +79,32 @@ jobs:
         name: linux-binaries
         path: dist/linux/
 
-  release:
-    name: Create GitHub Release
+  tag-release:
+    name: Tag and Release
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+
+    - name: Create timestamped tag
+      run: |
+        TAG="SRV_CLE_GEN_$(date +%s)"
+        git tag -a "$TAG" -m "Auto-generated tag after merge to master"
+        git push origin "$TAG"
+
     - name: Download all artifacts
       uses: actions/download-artifact@v3
       with:
         path: dist/
 
-    - name: Create release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         name: Release ${{ github.ref_name }}

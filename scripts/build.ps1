@@ -1,6 +1,7 @@
 # Build script for Windows (PowerShell)
 
 Write-Host "[*] Building project..."
+cd ..
 make clean
 make all
 

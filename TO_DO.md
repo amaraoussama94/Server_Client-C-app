@@ -39,9 +39,9 @@ This document outlines the next set of tasks for evolving the multi-client serve
 
 ## ⚙️ Server Configuration
 
-- [ ] Load server settings from `server.cfg`:
+- [x] Load server settings from `server.cfg`:
   - Port, max clients, log path, shared directory, etc.
-- [ ] Use `config.c` to parse and apply settings at startup
+- [ x] Use `config.c` to parse and apply settings at startup
 
 ---
 

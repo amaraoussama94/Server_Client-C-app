@@ -18,14 +18,6 @@
   #include <arpa/inet.h>
 #endif
 
-/**
- * @brief Port definitions for different services.
- * These ports are used for chat, file transfer, and game services.
- */
-#define PORT_CHAT  8081
-#define PORT_FILE  8082
-#define PORT_GAME  8083
-
 
 /**
  * @brief Starts the server with the given arguments.

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build script for Unix-like systems
-
+cd ..
 echo "[*] Building project..."
 make clean && make all
 

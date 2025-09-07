@@ -1,19 +1,16 @@
 /**
  * @file client.c
- * @brief Implements the main client logic: config loading, connection setup, and feature dispatch.
- *        Connects to a server using TCP, then sends chat and file requests based on configuration.
- *        Uses cross-platform socket APIs and structured logging for traceability.
- *        Formats messages using CRC|OPTION|PAYLOAD|EOC protocol.
+ * @brief Implements the client logic: config loading, connection setup, and message dispatch.
+ *        Connects to a server using TCP and sends a message based on the configured port.
+ *        Uses CRC|OPTION|PAYLOAD|EOC protocol format.
  * @author Oussama Amara
- * @version 0.7
+ * @version 0.9
  * @date 2025-09-07
  */
 
 #include "client.h"
 #include "config.h"
 #include "logger.h"
-#include "chat.h"
-#include "file_client.h"
 #include "protocol.h"
 #include "crc.h"
 
@@ -31,12 +28,6 @@
 #include <sys/socket.h>
 #endif
 
-/**
- * @brief Formats a message using CRC|OPTION|PAYLOAD|EOC and sends it over the socket.
- * @param sockfd Socket descriptor.
- * @param option Feature type: "msg", "file", "game".
- * @param payload Message or file path.
- */
 void send_formatted(int sockfd, const char* option, const char* payload) {
     char crc[8];
     generate_crc(payload, crc);
@@ -48,29 +39,20 @@ void send_formatted(int sockfd, const char* option, const char* payload) {
     log_message(LOG_INFO, "Sent formatted message: %s", message);
 }
 
-/**
- * @brief Runs the client application.
- *        Loads configuration, connects to server, and dispatches enabled features.
- * @param argc Argument count.
- * @param argv Argument vector. Expects argv[1] to be path to config file.
- * @return 0 on success, non-zero on failure.
- */
 int run_client(int argc, char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <config_path>\n", argv[0]);
         return 1;
     }
 
-    log_message(LOG_INFO, "Attempting to load config from: %s", argv[1]);
-
     Config cfg;
     if (load_config(argv[1], &cfg) != 0) {
-        fprintf(stderr, "[-] Failed to load client config.\n");
+        fprintf(stderr, "[-] Failed to load config.\n");
         return 1;
     }
 
     set_log_level(LOG_INFO);
-    log_message(LOG_INFO, "Connecting to server at %s:%d", cfg.host, cfg.port);
+    log_message(LOG_INFO, "Connecting to %s:%d", cfg.host, cfg.port);
 
 #ifdef _WIN32
     WSADATA wsa;
@@ -113,15 +95,15 @@ int run_client(int argc, char** argv) {
 
     log_message(LOG_INFO, "[✓] Connected to server");
 
-    /**
-     * @brief Dispatch enabled features based on config.
-     */
-    if (cfg.enable_chat) {
+    // Dispatch based on port
+    if (cfg.port == cfg.port_chat) {
         send_formatted(sockfd, "msg", "Hello from client!");
-    }
-
-    if (cfg.enable_file) {
+    } else if (cfg.port == cfg.port_file) {
         send_formatted(sockfd, "file", "example.txt");
+    } else if (cfg.port == cfg.port_game) {
+        send_formatted(sockfd, "game", "start");
+    } else {
+        log_message(LOG_WARN, "Unknown feature port: %d", cfg.port);
     }
 
 #ifdef _WIN32
@@ -134,13 +116,6 @@ int run_client(int argc, char** argv) {
     return 0;
 }
 
-/**
- * @brief Entry point for the client application.
- *        Delegates to run_client().
- * @param argc Argument count.
- * @param argv Argument vector.
- * @return Exit code from run_client().
- */
 int main(int argc, char** argv) {
     return run_client(argc, argv);
 }

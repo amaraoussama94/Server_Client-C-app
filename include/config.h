@@ -1,25 +1,27 @@
 /**
  * @file config.h
  * @brief Configuration loader and parser for runtime settings (e.g., ports, paths, feature toggles).
- *  Supports environment overrides and default fallbacks.
+ *        Supports environment overrides and default fallbacks.
+ *        Extended to support client mode selection for multi-port routing.
  * @author Oussama Amara
- * @version 0.5
- * @date 2025-09-04
+ * @version 0.6
+ * @date 2025-09-07
  */
 
 #ifndef CONFIG_H
 #define CONFIG_H
+
 /**
  * @brief Configuration structure holding runtime settings.
  */
 typedef struct {
-    char host[64];   ///< Server hostname or IP
-    int port;        ///< Server port
-    int enable_chat; ///< Feature toggle for chat
-    int enable_game; ///< Feature toggle for game
-    int enable_file; ///< Feature toggle for file transfer
+    char host[64];     ///< Server hostname or IP
+    int port;          ///< Server port
+    int enable_chat;   ///< Feature toggle for chat
+    int enable_game;   ///< Feature toggle for game
+    int enable_file;   ///< Feature toggle for file transfer
+    char mode[32];     ///< Client mode: "msg", "file", "game"
 } Config;
-
 
 /**
  * @brief Loads configuration from file or environment.

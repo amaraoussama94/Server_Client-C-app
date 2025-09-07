@@ -3,8 +3,9 @@
  * @brief Implements the main client logic: config loading, connection setup, and feature dispatch.
  *        Connects to a server using TCP, then sends chat and file requests based on configuration.
  *        Uses cross-platform socket APIs and structured logging for traceability.
+ *        Formats messages using CRC|OPTION|PAYLOAD|EOC protocol.
  * @author Oussama Amara
- * @version 0.6
+ * @version 0.7
  * @date 2025-09-07
  */
 
@@ -14,6 +15,7 @@
 #include "chat.h"
 #include "file_client.h"
 #include "protocol.h"
+#include "crc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +30,23 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #endif
+
+/**
+ * @brief Formats a message using CRC|OPTION|PAYLOAD|EOC and sends it over the socket.
+ * @param sockfd Socket descriptor.
+ * @param option Feature type: "msg", "file", "game".
+ * @param payload Message or file path.
+ */
+void send_formatted(int sockfd, const char* option, const char* payload) {
+    char crc[8];
+    generate_crc(payload, crc);
+
+    char message[1024];
+    snprintf(message, sizeof(message), "%s|%s|%s|EOC", crc, option, payload);
+
+    send(sockfd, message, strlen(message), 0);
+    log_message(LOG_INFO, "Sent formatted message: %s", message);
+}
 
 /**
  * @brief Runs the client application.
@@ -98,11 +117,11 @@ int run_client(int argc, char** argv) {
      * @brief Dispatch enabled features based on config.
      */
     if (cfg.enable_chat) {
-        send_chat(sockfd, "Hello from client!");
+        send_formatted(sockfd, "msg", "Hello from client!");
     }
 
     if (cfg.enable_file) {
-        request_file("example.txt", sockfd);
+        send_formatted(sockfd, "file", "example.txt");
     }
 
 #ifdef _WIN32

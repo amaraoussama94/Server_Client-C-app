@@ -2,10 +2,10 @@
  * @file config.c
  * @brief Loads and parses configuration files with support for feature toggles and environment overrides.
  *        Applies default values, then overrides from file and environment variables.
- *        Ensures safe buffer handling and logs final configuration state.
+ *        Extended to support client mode selection for multi-port routing.
  * @author Oussama Amara
- * @version 0.5
- * @date 2025-09-04
+ * @version 0.6
+ * @date 2025-09-07
  */
 
 #include "config.h"
@@ -39,6 +39,8 @@ int load_config(const char* path, Config* cfg) {
     cfg->enable_chat = 1;
     cfg->enable_game = 0;
     cfg->enable_file = 1;
+    strncpy(cfg->mode, "msg", sizeof(cfg->mode) - 1);
+    cfg->mode[sizeof(cfg->mode) - 1] = '\0';
 
     // Attempt to open config file
     FILE* file = fopen(path, "r");
@@ -51,7 +53,7 @@ int load_config(const char* path, Config* cfg) {
     char line[256];
     while (fgets(line, sizeof(line), file)) {
         char key[64], value[128];
-        if (line[0] == '#' || strlen(line) < 3) continue; // Skip comments and short lines
+        if (line[0] == '#' || strlen(line) < 3) continue;
         if (sscanf(line, "%63s %127s", key, value) == 2) {
             if (strcmp(key, "host") == 0) {
                 strncpy(cfg->host, value, sizeof(cfg->host) - 1);
@@ -64,6 +66,9 @@ int load_config(const char* path, Config* cfg) {
                 cfg->enable_game = parse_bool(value);
             } else if (strcmp(key, "enable_file") == 0) {
                 cfg->enable_file = parse_bool(value);
+            } else if (strcmp(key, "mode") == 0) {
+                strncpy(cfg->mode, value, sizeof(cfg->mode) - 1);
+                cfg->mode[sizeof(cfg->mode) - 1] = '\0';
             }
         }
     }
@@ -101,9 +106,16 @@ int load_config(const char* path, Config* cfg) {
         log_message(LOG_INFO, "Overriding file toggle from environment: %s", env_file);
     }
 
+    const char* env_mode = getenv("CONFIG_MODE");
+    if (env_mode) {
+        strncpy(cfg->mode, env_mode, sizeof(cfg->mode) - 1);
+        cfg->mode[sizeof(cfg->mode) - 1] = '\0';
+        log_message(LOG_INFO, "Overriding mode from environment: %s", env_mode);
+    }
+
     // Final configuration summary
-    log_message(LOG_INFO, "Config loaded: %s:%d (chat=%d, game=%d, file=%d)",
-                cfg->host, cfg->port, cfg->enable_chat, cfg->enable_game, cfg->enable_file);
+    log_message(LOG_INFO, "Config loaded: %s:%d (chat=%d, game=%d, file=%d, mode=%s)",
+                cfg->host, cfg->port, cfg->enable_chat, cfg->enable_game, cfg->enable_file, cfg->mode);
 
     return 0;
 }
@@ -114,5 +126,5 @@ int load_config(const char* path, Config* cfg) {
  * @return Value string or NULL if not set.
  */
 const char* get_config_value(const char* key) {
-    return getenv(key); // Future: extend to search loaded config
+    return getenv(key);
 }

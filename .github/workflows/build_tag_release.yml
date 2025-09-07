@@ -1,10 +1,11 @@
 # /**
 #  * @file build-release.yml
-#  * @brief GitHub Actions workflow for cross-platform build and automated tagging after pull request merges.
-#  *        Builds Windows and Linux binaries, packages artifacts, and creates a timestamped tag.
-#  *        Triggered on push to master (typically after PR merge).
+#  * @brief GitHub Actions workflow for cross-platform build and semantic tagging after pull request merges.
+#  *        Builds Windows and Linux binaries, packages artifacts, and auto-increments version tag.
+#  *        Triggered on push to main (typically after PR merge).
+#  *        Versioning follows X.Y format, starting at 1.0 and rolling over after 0.9.
 #  * @author Oussama Amara
-#  * @version 1.0
+#  * @version 1.1
 #  * @date 2025-09-07
 #  */
 
@@ -14,6 +15,9 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write  # Required for pushing tags and creating releases
 
 jobs:
   build-windows:
@@ -93,10 +97,39 @@ jobs:
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
 
-    - name: Create timestamped tag
+    - name: Read and increment version
+      id: versioning
       run: |
-        TAG="SRV_CLE_GEN_$(date +%s)"
-        git tag -a "$TAG" -m "Auto-generated tag after merge to master"
+        VERSION_FILE="VERSION"
+        if [ ! -f "$VERSION_FILE" ]; then
+          echo "1.0" > "$VERSION_FILE"
+        fi
+
+        CURRENT=$(cat "$VERSION_FILE")
+        MAJOR=$(echo $CURRENT | cut -d. -f1)
+        MINOR=$(echo $CURRENT | cut -d. -f2)
+
+        if [ "$MINOR" -lt 9 ]; then
+          NEW_MINOR=$((MINOR + 1))
+          NEW_VERSION="$MAJOR.$NEW_MINOR"
+        else
+          NEW_MAJOR=$((MAJOR + 1))
+          NEW_VERSION="$NEW_MAJOR.0"
+        fi
+
+        echo "$NEW_VERSION" > "$VERSION_FILE"
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Commit updated version file
+      run: |
+        git add VERSION
+        git commit -m "Bump version to ${{ steps.versioning.outputs.version }}"
+        git push
+
+    - name: Create and push tag
+      run: |
+        TAG="SRV_CLE_GEN_${{ steps.versioning.outputs.version }}"
+        git tag -a "$TAG" -m "Auto-generated tag: $TAG"
         git push origin "$TAG"
 
     - name: Download all artifacts
@@ -107,8 +140,8 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        name: Release ${{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
+        name: Release ${{ steps.versioning.outputs.version }}
+        tag_name: SRV_CLE_GEN_${{ steps.versioning.outputs.version }}
         files: |
           dist/windows/*.exe
           dist/linux/*

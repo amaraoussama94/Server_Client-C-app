@@ -47,7 +47,7 @@ jobs:
         cp build/bin/*.exe dist/windows/
 
     - name: Upload Windows artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-binaries
         path: dist/windows/
@@ -74,7 +74,7 @@ jobs:
         cp build/bin/* dist/linux/
 
     - name: Upload Linux artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-binaries
         path: dist/linux/

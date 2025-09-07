@@ -108,7 +108,11 @@ int run_server(int argc, char** argv) {
             int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
             if (received <= 0) {
                 log_message(LOG_WARN, "Failed to receive data or client disconnected.");
-                close(connfd);
+                #ifdef _WIN32
+                    closesocket(sockfds[i]);
+                #else
+                    close(sockfds[i]);
+                #endif
                 continue;
             }
             buffer[received] = '\0';
@@ -129,7 +133,11 @@ int run_server(int argc, char** argv) {
                 }
             }
 
+        #ifdef _WIN32
+            closesocket(connfd);
+        #else
             close(connfd);
+        #endif
         }
     }
 
@@ -137,7 +145,11 @@ int run_server(int argc, char** argv) {
      * @brief Cleanup: close all sockets and release resources.
      */
     for (int i = 0; i < 3; ++i) {
-        close(sockfds[i]);
+        #ifdef _WIN32
+            closesocket(sockfds[i]);
+        #else
+            close(sockfds[i]);
+        #endif
     }
 
     win_socket_cleanup();

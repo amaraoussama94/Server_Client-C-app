@@ -1,147 +1,83 @@
-# 🧠 Multi-Client Server Project – README & Roadmap
+# 🛠️ Multi-Client Server – Next Development Sprint
 
-## 📦 Project Overview
-
-This project is a cross-platform (Windows/Linux) server-client system designed to support:
-
-- ✅ File transfer between server and multiple clients
-- ✅ Chat messaging
-- ✅ Future integration of multiplayer game clients
-- ✅ Logging and history tracking
-- ✅ Modular, extensible architecture
+This document outlines the next set of tasks for evolving the multi-client server project. It focuses on synchronization, protocol integrity, configurability, and contributor experience.
 
 ---
 
-## 🚀 Getting Started
+## 🤝 Client Coordination
 
-### 🔧 Requirements
-
-- C compiler (GCC or MSVC)
-- POSIX-compatible environment (Linux/macOS) or Windows with Winsock
-- Git Bash / PowerShell for script execution
-- Optional: Doxygen for documentation generation
+- [ ] Implement synchronization logic:  
+  Ensure both clients are connected before initiating exchange.  
+  _Approach_: Add `READY` handshake and wait for `ACK` from both clients.
 
 ---
 
-## 📁 Project Structure (Planned)
+## 📤 Client-Controlled Messaging & File Transfer
 
-```plaintext
-project-root/
-├── include/              # Header files
-│   ├── server.h
-│   ├── client.h
-│   ├── protocol.h
-│   ├── file_transfer.h
-│   ├── chat.h
-│   ├── game.h
-│   ├── logger.h
-│   ├── platform.h
-│   └── config.h
-├── src/
-│   ├── server/
-│   │   ├── main.c
-│   │   ├── dispatcher.c
-│   │   ├── connection.c
-│   ├── client/
-│   │   ├── main.c
-│   │   ├── file_client.c
-│   │   ├── chat_client.c
-│   ├── protocol/
-│   │   ├── protocol.c
-│   │   ├── parser.c
-│   ├── features/
-│   │   ├── file_transfer.c
-│   │   ├── chat.c
-│   │   ├── game.c
-│   ├── utils/
-│   │   ├── logger.c
-│   │   ├── platform.c
-│   │   ├── config.c
-├── assets/               # Shared files
-├── scripts/              # Bash & PowerShell scripts
-├── Makefile              # Build automation
-└── README.md             # Project roadmap
-
-```
-## ✅ Current Features
-
-- File transfer from server to client using TCP sockets
-- Argument validation for both client and server (`arg_test.h`)
-- Logging system with support for history display (`logger.h`, `--History`)
-- Progress bar visualization during file reception
-- Cross-platform compatibility (Windows via Winsock, Linux/macOS via BSD sockets)
-- Basic directory listing via shell/PowerShell scripts
+- [ ] Allow clients to choose between sending a message or a file  
+  _Approach_: Add CLI flags or interactive prompt (`--send-msg`, `--send-file`)
+- [ ] Refactor client logic to support dynamic input selection and validation
 
 ---
 
-## 🛠️ TODO – Development Roadmap
+## 📡 Protocol Assertion & Encoding
 
-### 🔁 Refactor & Modularize
-- [ ] Split `server.c` and `client.c` into logical modules (e.g. `connection.c`, `dispatcher.c`)
-- [ ] Create a dispatcher to route incoming commands to appropriate handlers
-- [ ] Abstract platform-specific code into `platform.c` for cleaner cross-platform support
-
-### 📡 Protocol Design
-- [ ] Define a simple message format: `COMMAND|ARG1|ARG2|...`
-- [ ] Implement a parser to interpret incoming messages
-- [ ] Add response framing and error codes for robustness
-
-### 💬 Chat System
-- [ ] Add support for `CHAT|message` commands
-- [ ] Broadcast messages to all connected clients
-- [ ] Handle client disconnects and reconnections gracefully
-
-### 📁 File Transfer Enhancements
-- [ ] Support multiple file requests in one session
-- [ ] Add file upload capability from client to server
-- [ ] Improve progress bar accuracy and responsiveness
-
-### 🎮 Game Client Integration
-- [ ] Define basic game protocol: `GAME|MOVE|player|x|y`
-- [ ] Create a stub game client that connects to the server
-- [ ] Add server-side game state manager to track player positions
-
-### 🧵 Multi-Client Support
-- [ ] Use threads (`pthread` / `CreateThread`) or I/O multiplexing (`select()` / `poll()`)
-- [ ] Manage client sessions with unique IDs
-- [ ] Add timeout and keep-alive logic to detect inactive clients
-
-### 📜 Documentation & Build
-- [ ] Write Doxygen-style comments for all modules
-- [ ] Create a cross-platform `Makefile` for building on Linux and Windows
-- [ ] Add usage examples and screenshots to the README
+- [ ] Update `protocol_assert.c` to validate message structure before dispatch
+- [ ] Ensure all outgoing messages are encoded via `protocol_encode()`
+- [ ] All incoming messages parsed via `protocol_parse()`
 
 ---
 
-## 🧪 Testing
+## 🔍 Parser & CRC Validation
 
-- [ ] Create test scripts to simulate file transfer and chat sessions
-- [ ] Validate behavior with multiple concurrent clients
-- [ ] Ensure consistent behavior across Windows and Linux
+- [ ] Enhance parser to:
+  - Detect end-of-command marker (`\n`, `\0`, or custom delimiter)
+  - Validate CRC checksum for both messages and files
+  - Reject malformed or tampered packets with error codes
 
 ---
 
-## 🤝 Contributing
+## ⚙️ Server Configuration
 
-This project is designed with clarity and onboarding in mind. All modules will be documented and formatted for maintainability. Contributions are welcome — especially around protocol design, game logic, and CI/CD integration.
+- [ ] Load server settings from `server.cfg`:
+  - Port, max clients, log path, shared directory, etc.
+- [ ] Use `config.c` to parse and apply settings at startup
+
+---
+
+## 📜 Logging System
+
+- [ ] Add log file support for both server and client:
+  - Server: `server.log`
+  - Client: `client_<id>.log`
+- [ ] Include timestamps, command traces, and error reports
+
+---
+
+## 🖥️ CLI Improvements
+
+- [ ] Update client CLI to support:
+  - `--mode chat|file`
+  - `--target <client_id>`
+  - `--config <path>` for loading client settings
+- [ ] Add help screen (`--help`) with usage examples
+
+---
+
+## 🧪 Test Environment Prep
+
+- [ ] Create `test_env/` folder with:
+  - Mock config files (`server.cfg`, `client.cfg`)
+  - Sample files for transfer
+  - Test scripts to simulate multi-client sessions
+- [ ] Add `test_runner.sh` to automate test cases:
+  - Connection sync
+  - Message/file integrity
+  - CRC failure simulation
 
 ---
 
 ## 📌 Notes
 
-- Scripts: `script.sh` (Linux/macOS), `script_windows.ps1` (Windows)
-- Logs: Stored in `log.txt`, filtered by `--History`
-- Default port: `8080`, configurable via `-p`
-- Shared folder: passed via `-d` argument on server startup
-
----
-
-## 🧭 Author
-
-**Oussama Amara**  
-Methodical, inclusive, and passionate about technical and cultural organization.  
-Focused on clarity, completeness, and accessibility in all systems.
-
----
-
+This sprint focuses on protocol clarity, modularity, and contributor empowerment. All changes should be documented with Doxygen-style comments and reflected in `README.md` and `TECHNICAL_REFERENCE.md`.
 

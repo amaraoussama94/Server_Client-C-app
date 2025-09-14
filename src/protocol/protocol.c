@@ -37,7 +37,7 @@ int decode_frame(const char* input, ParsedCommand* cmd) {
     }
 
     // Expecting exactly 6 tokens: <CRC>|<OPTION>|<SRC_ID>|<DEST_ID>|<PAYLOAD>|EOM
-    if (count != 6 || strcmp(tokens[5], "EOM") != 0) return -1;
+    if (count != 6 ) return -1;
 
     strncpy(cmd->crc, tokens[0], sizeof(cmd->crc) - 1);
     cmd->crc[sizeof(cmd->crc) - 1] = '\0';
@@ -51,5 +51,5 @@ int decode_frame(const char* input, ParsedCommand* cmd) {
     strncpy(cmd->message, tokens[4], sizeof(cmd->message) - 1);
     cmd->message[sizeof(cmd->message) - 1] = '\0';
 
-    return validate_crc(cmd->crc, cmd->message);
+    return strcmp(tokens[5], "EOM") == 0 ? 0 : -1;
 }

@@ -14,7 +14,6 @@
 #include "config.h"
 #include "logger.h"
 #include "protocol.h"
-#include "parser.h"
 #include "client_registry.h"
 #include "platform.h"
 
@@ -26,6 +25,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 typedef int socklen_t; 
+#pragma comment(lib, "ws2_32.lib")
 #else
 #include <unistd.h>
 #endif
@@ -68,7 +68,8 @@ THREAD_FUNC handle_client(void* arg) {
             send(connfd, buffer, strlen(buffer), 0);
         }
     }
-
+    // work around to avoid message clumping 
+    // to be improved with proper message framing
     build_frame("system", 0, client_id, "You may begin", "START", buffer);
     send(connfd, buffer, strlen(buffer), 0);
 

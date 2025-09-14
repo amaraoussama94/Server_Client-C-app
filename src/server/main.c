@@ -76,6 +76,9 @@ int run_server(int argc, char** argv) {
             struct sockaddr_in cli;
             int len = sizeof(cli);
             int connfd = accept(sockfds[i], (struct sockaddr*)&cli, &len);
+            log_message(LOG_INFO, "Accepted connection on port %d from %s:%d",
+            ports[i], inet_ntoa(cli.sin_addr), ntohs(cli.sin_port));
+
             if (connfd < 0) continue;
 
             int client_id = register_client(connfd, cli);
@@ -91,6 +94,7 @@ int run_server(int argc, char** argv) {
 
             char welcome[MAX_COMMAND_LENGTH];
             build_frame("system", 0, client_id, "ID_ASSIGN", "READY", welcome);
+            log_message(LOG_INFO, "Sending ID assignment to client %d: %s", client_id, welcome);
             send(connfd, welcome, strlen(welcome), 0);
 
             for (int j = 0; j < MAX_CLIENTS; ++j) {
@@ -102,20 +106,31 @@ int run_server(int argc, char** argv) {
                     send(connfd, welcome, strlen(welcome), 0);
                 }
             }
-
             char buffer[MAX_COMMAND_LENGTH] = {0};
+            //inform the client that he can start sending
+            build_frame("system", 0, client_id, "You may begin", "START", buffer);
+            send(connfd, buffer, strlen(buffer), 0);
+            log_message(LOG_INFO, "Client %d registered.", client_id);
+
             int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
+            log_message(LOG_INFO, "Received raw frame from client %d: %s", client_id, buffer);
             if (received <= 0) {
                 log_message(LOG_WARN, "Client disconnected or failed to send.");
                 unregister_client(client_id);
                 continue;
             }
             buffer[received] = '\0';
+            log_message(LOG_INFO, "Received raw frame from client %d: %s", client_id, buffer);
 
             ParsedCommand cmd;
             if (parse_command(buffer, &cmd) == 0) {
+                log_message(LOG_INFO, "Parsed frame → channel=%s src=%d dest=%d status=%s msg=%s",
+                            cmd.channel, cmd.src_id, cmd.dest_id, cmd.status, cmd.message);
                 dispatch_command(&cmd);
+            } else {
+                log_message(LOG_WARN, "Failed to parse frame from client %d", client_id);
             }
+
 
         #ifdef _WIN32
             closesocket(connfd);

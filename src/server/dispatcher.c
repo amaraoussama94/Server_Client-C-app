@@ -17,6 +17,9 @@
 void dispatch_command(const ParsedCommand* cmd) {
     if (!cmd) return;
     // Update last activity timestamp
+    log_message(LOG_INFO, "Dispatching frame → channel=%s src=%d dest=%d status=%s msg=%s",
+            cmd->channel, cmd->src_id, cmd->dest_id, cmd->status, cmd->message);
+
     update_activity(cmd->src_id);
     // Handle system commands like delivery confirmation
     if (strcmp(cmd->channel, "system") == 0) {
@@ -27,6 +30,7 @@ void dispatch_command(const ParsedCommand* cmd) {
             if (sender_fd >= 0) {
                 char ack_msg[MAX_COMMAND_LENGTH];
                 build_frame("system", 0, cmd->dest_id, "DELIVERY_CONFIRMED", "ACK", ack_msg);
+                log_message(LOG_INFO, "Sending frame from server to client %d: %s", cmd->dest_id, ack_msg);
                 send(sender_fd, ack_msg, strlen(ack_msg), 0);
             }
         }
@@ -42,10 +46,12 @@ void dispatch_command(const ParsedCommand* cmd) {
     if (strcmp(cmd->channel, "chat") == 0) {
         char forward[MAX_COMMAND_LENGTH];
         build_frame("chat", cmd->src_id, cmd->dest_id, cmd->message, "READY", forward);
+        log_message(LOG_INFO, "Sending framefrome cleint %d  to client %d: %s",cmd->src_id, cmd->dest_id, forward);
         send(receiver_fd, forward, strlen(forward), 0);
     } else if (strcmp(cmd->channel, "file") == 0) {
         char wait_msg[MAX_COMMAND_LENGTH];
         build_frame("file", 0, cmd->dest_id, "Prepare for file", "WAIT", wait_msg);
+        log_message(LOG_INFO, "Sending frame to client %d: %s", cmd->dest_id, wait_msg);
         send(receiver_fd, wait_msg, strlen(wait_msg), 0);
 
         sleep(1); // Simulate transfer delay

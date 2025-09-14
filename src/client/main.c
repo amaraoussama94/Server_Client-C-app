@@ -20,6 +20,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
+typedef int socklen_t; 
 #else
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -67,6 +68,12 @@ int run_client(int argc, char** argv) {
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(cfg.port);
     servaddr.sin_addr.s_addr = inet_addr(cfg.host);
+    struct sockaddr_in local;
+    socklen_t len = sizeof(local);
+    getsockname(sockfd, (struct sockaddr*)&local, &len);
+
+    log_message(LOG_INFO, "Client socket bound to local port %d", ntohs(local.sin_port));
+
 
     if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) {
 #ifdef _WIN32
@@ -80,16 +87,21 @@ int run_client(int argc, char** argv) {
         return 1;
     }
 
-    log_message(LOG_INFO, "[✓] Connected to server");
+    log_message(LOG_INFO, "[ok] Connected to server");
 
     char buffer[MAX_COMMAND_LENGTH];
     int my_id = -1;
 
     // Receive ID assignment and client list
     while (1) {
+        log_message(LOG_INFO, "wait for server response...");
         int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-        if (received <= 0) break;
+        if (received <= 0){
+            log_message(LOG_INFO, "No recived ID from server");
+            break;
+        }
         buffer[received] = '\0';
+        log_message(LOG_INFO, "Received raw frame: %s", buffer);
 
         ParsedCommand cmd;
         if (parse_command(buffer, &cmd) == 0) {
@@ -100,8 +112,9 @@ int run_client(int argc, char** argv) {
                 //list active clients
             } else if (strcmp(cmd.status, "LIST") == 0) {
                 log_message(LOG_INFO, "Active client: %s", cmd.message);
-            } else {
-                break; // Exit loop when actual message exchange begins
+            } else if (strcmp(cmd.status, "START") == 0) {
+                log_message(LOG_INFO, "Handshake complete. Ready to send messages.");
+                break;
             }
         }
     }
@@ -129,14 +142,19 @@ int run_client(int argc, char** argv) {
     else if (cfg.port == cfg.port_game) channel = "game";
 
     build_frame(channel, my_id, target_id, message, "SEND", buffer);
+    log_message(LOG_INFO, "Sending frame → channel=%s to client %d: %s",
+            channel, target_id, buffer);
     send(sockfd, buffer, strlen(buffer), 0);
 
     // Wait for ACK or delivery confirmation
     int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+    log_message(LOG_INFO, "Received raw frame: %s", buffer);
     if (received > 0) {
         buffer[received] = '\0';
         ParsedCommand cmd;
         if (parse_command(buffer, &cmd) == 0) {
+            log_message(LOG_INFO, "Parsed frame → channel=%s src=%d dest=%d status=%s msg=%s",
+            cmd.channel, cmd.src_id, cmd.dest_id, cmd.status, cmd.message);
             if (strcmp(cmd.status, "ACK") == 0 || strcmp(cmd.status, "DELIVERY_CONFIRMED") == 0) {
                 log_message(LOG_INFO, "Server confirmed delivery: %s", cmd.message);
             } else {

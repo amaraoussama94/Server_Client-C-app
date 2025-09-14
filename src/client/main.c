@@ -1,18 +1,17 @@
 /**
  * @file client.c
- * @brief Implements the client logic: config loading, connection setup, and message dispatch.
- *        Connects to a server using TCP and sends a message based on the configured port.
- *        Uses CRC|OPTION|PAYLOAD|EOC protocol format.
+ * @brief Implements the client logic: config loading, connection setup, ID assignment, and message dispatch.
+ *        Uses custom protocol format: <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|EOM
  * @author Oussama Amara
- * @version 0.9
- * @date 2025-09-07
+ * @version 1.0
+ * @date 2025-09-14
  */
 
 #include "client.h"
 #include "config.h"
 #include "logger.h"
 #include "protocol.h"
-#include "crc.h"
+#include "parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,17 +27,6 @@
 #include <sys/socket.h>
 #endif
 
-void send_formatted(int sockfd, const char* option, const char* payload) {
-    char crc[8];
-    generate_crc(payload, crc);
-
-    char message[1024];
-    snprintf(message, sizeof(message), "%s|%s|%s|EOC", crc, option, payload);
-
-    send(sockfd, message, strlen(message), 0);
-    log_message(LOG_INFO, "Sent formatted message: %s", message);
-}
-
 int run_client(int argc, char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <config_path>\n", argv[0]);
@@ -52,7 +40,6 @@ int run_client(int argc, char** argv) {
     }
 
     set_log_level(LOG_INFO);
-    log_message(LOG_INFO, "Connecting to %s:%d", cfg.host, cfg.port);
 
 #ifdef _WIN32
     WSADATA wsa;
@@ -95,15 +82,28 @@ int run_client(int argc, char** argv) {
 
     log_message(LOG_INFO, "[✓] Connected to server");
 
-    // Dispatch based on port
-    if (cfg.port == cfg.port_chat) {
-        send_formatted(sockfd, "msg", "Hello from client!");
-    } else if (cfg.port == cfg.port_file) {
-        send_formatted(sockfd, "file", "example.txt");
-    } else if (cfg.port == cfg.port_game) {
-        send_formatted(sockfd, "game", "start");
+    char buffer[MAX_COMMAND_LENGTH];
+    recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+
+    ParsedCommand cmd;
+    int my_id = -1;
+    if (parse_command(buffer, &cmd) == 0 && strcmp(cmd.message, "ID_ASSIGN") == 0) {
+        my_id = cmd.dest_id;
+        log_message(LOG_INFO, "Assigned client ID: %d", my_id);
     } else {
-        log_message(LOG_WARN, "Unknown feature port: %d", cfg.port);
+        log_message(LOG_ERROR, "Failed to receive ID assignment.");
+        return 1;
+    }
+
+    // Example: send message to another client
+    int target_id = 2;  // Replace with actual target
+    build_frame("chat", my_id, target_id, "Hello from client!", buffer);
+    send(sockfd, buffer, strlen(buffer), 0);
+
+    // Wait for delivery confirmation
+    recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+    if (parse_command(buffer, &cmd) == 0 && strcmp(cmd.message, "DELIVERY_CONFIRMED") == 0) {
+        log_message(LOG_INFO, "Message delivered to client %d", cmd.dest_id);
     }
 
 #ifdef _WIN32

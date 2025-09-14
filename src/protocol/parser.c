@@ -9,24 +9,26 @@
  *  @author Oussama Amara
  * @version 0.7
  */
+
 #include "protocol.h"
 #include "crc.h"
 #include "logger.h"
+#include <string.h>
 
 int parse_command(const char* input, ParsedCommand* cmd) {
     if (decode_frame(input, cmd) != 0) {
-        log_message(LOG_WARN, "Frame decoding failed or EOM missing.");
+        log_message(LOG_WARN, "Frame decoding failed.");
         return -1;
     }
 
     if (!validate_crc(cmd->crc, cmd->message)) {
-        log_message(LOG_WARN, "CRC mismatch: received=%s", cmd->crc);
+        log_message(LOG_WARN, "CRC mismatch.");
         return -1;
     }
 
-    // Future: validate channel, message format, ID ranges, etc.
-    log_message(LOG_DEBUG, "Command validated: channel=%s src=%d dest=%d msg=%s",
-                cmd->channel, cmd->src_id, cmd->dest_id, cmd->message);
+    // Future: validate channel, status, and message format
+    log_message(LOG_DEBUG, "Command validated: %s → %s [%s]",
+                cmd.channel, cmd.message, cmd.status);
     return 0;
 }
 

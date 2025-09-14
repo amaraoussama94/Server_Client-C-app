@@ -230,3 +230,43 @@ Document new status codes and frame format
 
 ---
 
+## 🧵 Threading Model
+
+### Overview
+
+The server uses a `thread-per-client model` to handle multiple connections concurrently. This ensures that one client’s activity does not block others.
+
+###  Implementation
+
+- On accept(), the server spawns a thread using create_thread()
+
+- Each thread runs handle_client(), which:
+
+    - Assigns client ID
+
+    - Sends active client list
+
+    - Waits for message
+
+    - Dispatches command
+
+    - Cleans up on disconnect
+
+###  Cross-Platform Support
+
+```text
+|Platform	| Thread API Used |
+-----------------------------
+|Linux    |	pthread_create()|
+-----------------------------
+|Windows  |	CreateThread()  |
+-----------------------------
+```
+
+### Thread Lifecycle
+
+- Threads are detached after creation
+
+- Socket is closed and client unregistered on exit
+
+- Shared resources (e.g. registry) should be protected with mutexes if extended

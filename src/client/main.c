@@ -1,18 +1,17 @@
 /**
  * @file client.c
- * @brief Implements the client logic: config loading, connection setup, and message dispatch.
- *        Connects to a server using TCP and sends a message based on the configured port.
- *        Uses CRC|OPTION|PAYLOAD|EOC protocol format.
+ * @brief Implements client logic: config loading, connection setup, ID assignment, message dispatch, and ACK handling.
+ *        Uses custom protocol format: <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>
+ *        Supports chat, file, and game features based on port configuration.
  * @author Oussama Amara
- * @version 0.9
- * @date 2025-09-07
+ * @version 1.0
+ * @date 2025-09-14
  */
 
 #include "client.h"
 #include "config.h"
 #include "logger.h"
 #include "protocol.h"
-#include "crc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,23 +20,13 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
+typedef int socklen_t; 
 #else
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #endif
-
-void send_formatted(int sockfd, const char* option, const char* payload) {
-    char crc[8];
-    generate_crc(payload, crc);
-
-    char message[1024];
-    snprintf(message, sizeof(message), "%s|%s|%s|EOC", crc, option, payload);
-
-    send(sockfd, message, strlen(message), 0);
-    log_message(LOG_INFO, "Sent formatted message: %s", message);
-}
 
 int run_client(int argc, char** argv) {
     if (argc < 2) {
@@ -52,7 +41,6 @@ int run_client(int argc, char** argv) {
     }
 
     set_log_level(LOG_INFO);
-    log_message(LOG_INFO, "Connecting to %s:%d", cfg.host, cfg.port);
 
 #ifdef _WIN32
     WSADATA wsa;
@@ -80,6 +68,12 @@ int run_client(int argc, char** argv) {
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(cfg.port);
     servaddr.sin_addr.s_addr = inet_addr(cfg.host);
+    struct sockaddr_in local;
+    socklen_t len = sizeof(local);
+    getsockname(sockfd, (struct sockaddr*)&local, &len);
+
+    log_message(LOG_INFO, "Client socket bound to local port %d", ntohs(local.sin_port));
+
 
     if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) {
 #ifdef _WIN32
@@ -93,17 +87,80 @@ int run_client(int argc, char** argv) {
         return 1;
     }
 
-    log_message(LOG_INFO, "[✓] Connected to server");
+    log_message(LOG_INFO, "[ok] Connected to server");
 
-    // Dispatch based on port
-    if (cfg.port == cfg.port_chat) {
-        send_formatted(sockfd, "msg", "Hello from client!");
-    } else if (cfg.port == cfg.port_file) {
-        send_formatted(sockfd, "file", "example.txt");
-    } else if (cfg.port == cfg.port_game) {
-        send_formatted(sockfd, "game", "start");
-    } else {
-        log_message(LOG_WARN, "Unknown feature port: %d", cfg.port);
+    char buffer[MAX_COMMAND_LENGTH];
+    int my_id = -1;
+
+    // Receive ID assignment and client list
+    while (1) {
+        log_message(LOG_INFO, "wait for server response...");
+        int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+        if (received <= 0){
+            log_message(LOG_INFO, "No recived ID from server");
+            break;
+        }
+        buffer[received] = '\0';
+        log_message(LOG_INFO, "Received raw frame: %s", buffer);
+
+        ParsedCommand cmd;
+        if (parse_command(buffer, &cmd) == 0) {
+            // wait for serveur  ID_ASSIGN 
+            if (strcmp(cmd.status, "READY") == 0 && strcmp(cmd.message, "ID_ASSIGN") == 0) {
+                my_id = cmd.dest_id;
+                log_message(LOG_INFO, "Assigned client ID: %d", my_id);
+                //list active clients
+            } else if (strcmp(cmd.status, "LIST") == 0) {
+                log_message(LOG_INFO, "Active client: %s", cmd.message);
+            } else if (strcmp(cmd.status, "START") == 0) {
+                log_message(LOG_INFO, "Handshake complete. Ready to send messages.");
+                break;
+            }
+        }
+    }
+
+    if (my_id < 0) {
+        log_message(LOG_ERROR, "Failed to receive ID assignment.");
+        return 1;
+    }
+
+    // Prompt user for target ID and message
+    int target_id;
+    char message[MAX_MESSAGE_LENGTH];
+
+    printf("Enter target client ID: ");
+    scanf("%d", &target_id);
+    getchar(); // Consume newline
+
+    printf("Enter message or file path: ");
+    fgets(message, sizeof(message), stdin);
+    message[strcspn(message, "\n")] = '\0';
+
+    // Determine channel based on port
+    const char* channel = "chat";
+    if (cfg.port == cfg.port_file) channel = "file";
+    else if (cfg.port == cfg.port_game) channel = "game";
+
+    build_frame(channel, my_id, target_id, message, "SEND", buffer);
+    log_message(LOG_INFO, "Sending frame → channel=%s to client %d: %s",
+            channel, target_id, buffer);
+    send(sockfd, buffer, strlen(buffer), 0);
+
+    // Wait for ACK or delivery confirmation
+    int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+    log_message(LOG_INFO, "Received raw frame: %s", buffer);
+    if (received > 0) {
+        buffer[received] = '\0';
+        ParsedCommand cmd;
+        if (parse_command(buffer, &cmd) == 0) {
+            log_message(LOG_INFO, "Parsed frame → channel=%s src=%d dest=%d status=%s msg=%s",
+            cmd.channel, cmd.src_id, cmd.dest_id, cmd.status, cmd.message);
+            if (strcmp(cmd.status, "ACK") == 0 || strcmp(cmd.status, "DELIVERY_CONFIRMED") == 0) {
+                log_message(LOG_INFO, "Server confirmed delivery: %s", cmd.message);
+            } else {
+                log_message(LOG_INFO, "Server response: %s [%s]", cmd.message, cmd.status);
+            }
+        }
     }
 
 #ifdef _WIN32

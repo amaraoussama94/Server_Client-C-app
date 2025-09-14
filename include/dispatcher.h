@@ -23,13 +23,11 @@
 #endif
 
 /**
- * @brief Dispatches parsed command to appropriate handler based on command name.
- *        Used in legacy single-port mode or fallback routing.
+ * @brief Dispatches a parsed command to the appropriate feature handler.
  * @param cmd Pointer to parsed command.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
+ * @return void
  */
-void dispatch_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli);
+void dispatch_command(const ParsedCommand* cmd);
 
 /**
  * @brief Dispatches chat-related commands.

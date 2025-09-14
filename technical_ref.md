@@ -2,14 +2,18 @@
 
 ## 📦 Project Overview
 
+Project Overview
 This is a modular, cross-platform client-server system written in C. It supports chat, file transfer, and game commands over TCP sockets. The architecture is split into:
 
 - `client/`: Client-side orchestration and config loading
-- `server/`: Server-side socket setup and command dispatch
-- `features/`: Chat, file transfer, and game logic
-- `protocol/`: Command parsing and encoding
-- `utils/`: Logging, config parsing, platform compatibility
 
+- `server/`: Server-side socket setup and command dispatch
+
+- `features/`: Chat, file transfer, and game logic
+
+- `protocol/`: Command parsing and encoding
+
+- `utils/`: Logging, config parsing, platform compatibility
 ---
 
 ## 📊 UML Diagrams
@@ -27,6 +31,7 @@ v                      v              v
 | Config      | |   Logger    | | Dispatcher       | 
 | (load_cfg)  | |   (log_msg) | | (dispatch_cmd)   | 
 +-------------+ +-------------+ +------------------+
+
 ````
 
 ### Sequence Diagram (Chat Command)
@@ -42,44 +47,46 @@ Chat -> Client: send(connfd, message)
 
 ## 🧠 Function Documentation
 
-### `run_client(int argc, char** argv)`
-- Loads config, connects to server, sends commands.
-- Entry point for client binary.
+run_client(int argc, char** argv)
+Loads config, connects to server, sends commands
 
-### `run_server(int argc, char** argv)`
-- Loads config, sets up socket, accepts clients, dispatches commands.
+Entry point for client binary
 
-### `parse_command(const char* raw_msg, ParsedCommand* cmd)`
-- Tokenizes input into command and arguments.
-- Populates `ParsedCommand` struct.
+run_server(int argc, char** argv)
+Loads config, sets up socket, accepts clients, dispatches commands
 
-### `dispatch_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli)`
-- Routes command to appropriate feature handler.
+parse_command(const char* raw_msg, ParsedCommand* cmd)
+Decodes frame and validates CRC and status
 
-### `send_chat(int connfd, const char* message)`
-- Sends a chat message over the socket.
+dispatch_command(const ParsedCommand* cmd)
+Routes command to appropriate feature handler
 
-### `send_file_to_client(int* connfd, const char* filename, struct sockaddr_in cli)`
-- Sends file contents to client in chunks.
+build_frame(...)
+Constructs a protocol-compliant message frame
 
-### `handle_game_command(const ParsedCommand* cmd)`
-- Logs and handles game-related commands.
+decode_frame(...)
+Parses raw input into structured fields
 
-### `load_config(const char* path, Config* cfg)`
-- Parses config file and populates host/port.
+send_chat(...)
+Sends a chat message over the socket
 
-### `log_message(LogLevel level, const char* format, ...)`
-- Logs messages with severity level.
+send_file_to_client(...)
+Sends file contents to client in chunks
 
-### `init_logger(LogLevel level)`
-- Sets global log level.
+handle_game_command(...)
+Logs and handles game-related commands
 
-### `sleep_ms(int milliseconds)`
-- Cross-platform sleep utility.
+load_config(...)
+Parses config file and populates host/port
 
-### `get_temp_dir()`
-- Returns platform-specific temp directory.
+log_message(...)
+Logs messages with severity level
 
+sleep_ms(...)
+Cross-platform sleep utility
+
+get_temp_dir()
+Returns platform-specific temp directory
 ---
 
 ## ⚙️ Configuration Format
@@ -118,41 +125,75 @@ make
 
 ### Overview
 
-The protocol layer defines how commands are encoded, transmitted, and interpreted between client and server. It ensures consistent parsing, validation, and dispatching of messages across platforms.
+Overview
+The protocol layer defines how commands are encoded, transmitted, and interpreted between client and server. It ensures consistent framing, parsing, validation, and dispatching across chat, file, and game features.
 
-### Composition
-
-- **Raw Input**: Raw Input: Commands are sent as structured strings (e.g., "A1B2|msg|Hello|EOC")
-- **Tokenizer**: `parse_command()` splits input into:
-  -  `crc `: checksum
-
-  - `option`: feature type
-
-  - `payload`: message, file path, or game move
-
-  - `end`: end-of-command marker
-- **Struct**: Parsed data is stored in a `ParsedCommand` struct:
-```c
-  typedef struct {
-      char command[32];
-      char args[MAX_ARGS][128];
-      int argc;
-  } ParsedCommand;
+### Frame Format
+```text
+<CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>
 ```
 
-- Validation: Each command is validated for argument count and type.
+### Field Breakdown
+```text
+|Field	    |Description                                                            |
+-------------------------------------------------------------------------------------
+|CRC	      |Integrity checksum for the MESSAGE field                               |
+-------------------------------------------------------------------------------------
+|CHANNEL	  |Feature type: chat, file, game, or system                              |
+-------------------------------------------------------------------------------------
+|SRC_ID	    |Sender ID (0 = server)                                                 |
+-------------------------------------------------------------------------------------
+|DEST_ID	  |Receiver ID                                                            |
+-------------------------------------------------------------------------------------
+|MESSAGE	  |Actual content (chat text, file path, game command, or control message)|
+-------------------------------------------------------------------------------------
+|STATUS	    |Frame status: WAIT, READY, DONE, ACK, LIST, ID_ASSIGN, ERR             |
+-------------------------------------------------------------------------------------
+```
 
-Dispatch: dispatch_command() routes to the correct handler:
+### Composition
+- Encoding: build_frame() constructs a frame from components
 
-"chat" → send_chat()
+- Decoding: decode_frame() extracts fields into a ParsedCommand struct
 
-"file" → send_file_to_client()
+- Validation: parse_command() checks CRC and semantic correctness
 
-"game" → handle_game_command()
+- Dispatch: dispatch_command() routes based on CHANNEL and STATUS
 
-Protocol Format
-Commands follow a simple space-delimited format:
+### ParsedCommand Struct
+
+```c
+typedef struct {
+    char crc[9];
+    char channel[16];
+    int src_id;
+    int dest_id;
+    char message[512];
+    char status[16];
+} ParsedCommand;
+
+```
+### Dispatch Logic
+Channel	Handler Function	Location
+
+```text
+|chat	  |send_chat()	               |features/chat.c |
+-------------------------------------------------------
+|file	  |send_file_to_client()	     |features/file.c |
+-------------------------------------------------------
+|game	  |handle_game_command()	     |features/game.c |
+-------------------------------------------------------
+|system	|Internal ACK/ID/List logic	 |dispatcher.c    |
+-------------------------------------------------------
+```
 ### Validation
+-  ✅ CRC check for integrity
+
+-  ✅ Status check for semantic meaning
+
+-  ✅ Channel check for routing
+
+-  ✅ Fallback behavior: logs warning and ignores malformed frames)
 
 Each command is validated for argument count and type:
 
@@ -162,22 +203,6 @@ Each command is validated for argument count and type:
   - A warning is logged via `log_message(WARN, ...)`
   - The command is ignored or a protocol error is returned to the client
 
----
-
-### Dispatch
-
-Validated commands are routed to their respective handlers:
-
-| Command   | Handler Function           | Location         |
-|-----------|----------------------------|------------------|
-| `chat`    | `send_chat()`              | `features/chat.c`|
-| `file`    | `send_file_to_client()`    | `features/file.c`|
-| `game`    | `handle_game_command()`    | `features/game.c`|
-
-- Uses `strcmp(cmd->command, "chat")` style matching
-- Modular design allows easy extension
-
----
 
 ### Error Handling
 
@@ -193,10 +218,15 @@ Robust error handling ensures protocol resilience:
 
 To add a new command:
 
-1. Define handler in `features/`
-2. Add dispatch case in `dispatch_command()`
-3. Update validation logic if needed
-4. Document format in `protocol.h`
+1. Define handler in features/
+
+2. Add dispatch case in dispatcher.c
+
+3. Extend ParsedCommand if needed
+
+4. Update protocol.h and parser.c
+
+Document new status codes and frame format
 
 ---
 

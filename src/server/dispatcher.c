@@ -1,84 +1,73 @@
 /**
  * @file dispatcher.c
- * @brief Implements dispatching logic for parsed commands.
- *        Routes commands to chat, file, or game handlers based on context or port.
- *        Supports both unified and feature-specific dispatching.
+ * @brief Routes parsed commands to appropriate handlers based on channel and status.
+ *        Supports chat, file, game, and system logic with delivery confirmation.
  * @author Oussama Amara
- * @version 0.6
- * @date 2025-09-07
+ * @version 1.0
+ * @date 2025-09-14
  */
 
 #include "dispatcher.h"
 #include "protocol.h"
-#include "chat.h"
-#include "game.h"
-#include "file_transfer.h"
+#include "client_registry.h"
 #include "logger.h"
+#include <string.h>
+#include <unistd.h>
 
-/**
- * @brief Legacy dispatcher for unified command routing.
- *        Matches command name and routes to appropriate handler.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
+void dispatch_command(const ParsedCommand* cmd) {
     if (!cmd) return;
+    // Update last activity timestamp
+    log_message(LOG_INFO, "Dispatching frame → channel=%s src=%d dest=%d status=%s msg=%s",
+            cmd->channel, cmd->src_id, cmd->dest_id, cmd->status, cmd->message);
 
-    if (cmd->arg_count < 1) {
-        log_message(LOG_WARN, "Command '%s' missing arguments.", cmd->command);
+    update_activity(cmd->src_id);
+    // Handle system commands like delivery confirmation
+    if (strcmp(cmd->channel, "system") == 0) {
+        // Acknowledgment handling
+        if (strcmp(cmd->status, "ACK") == 0) {
+            int sender_fd = get_socket_by_id(cmd->dest_id);
+            //if sender_fd is valid, send confirmation back
+            if (sender_fd >= 0) {
+                char ack_msg[MAX_COMMAND_LENGTH];
+                build_frame("system", 0, cmd->dest_id, "DELIVERY_CONFIRMED", "ACK", ack_msg);
+                log_message(LOG_INFO, "Sending frame from server to client %d: %s", cmd->dest_id, ack_msg);
+                send(sender_fd, ack_msg, strlen(ack_msg), 0);
+            }
+        }
         return;
     }
 
-    if (strcmp(cmd->command, "chat") == 0) {
-        send_chat(connfd, cmd->args[0]);
-    } else if (strcmp(cmd->command, "file") == 0) {
-        send_file_to_client(&connfd, cmd->args[0], cli);
-    } else if (strcmp(cmd->command, "game") == 0) {
-        handle_game_command(cmd);
+    int receiver_fd = get_socket_by_id(cmd->dest_id);
+    if (receiver_fd < 0) {
+        log_message(LOG_WARN, "Receiver %d not found.", cmd->dest_id);
+        return;
+    }
+
+    if (strcmp(cmd->channel, "chat") == 0) {
+        char forward[MAX_COMMAND_LENGTH];
+        build_frame("chat", cmd->src_id, cmd->dest_id, cmd->message, "READY", forward);
+        log_message(LOG_INFO, "Sending framefrome cleint %d  to client %d: %s",cmd->src_id, cmd->dest_id, forward);
+        send(receiver_fd, forward, strlen(forward), 0);
+    } else if (strcmp(cmd->channel, "file") == 0) {
+        char wait_msg[MAX_COMMAND_LENGTH];
+        build_frame("file", 0, cmd->dest_id, "Prepare for file", "WAIT", wait_msg);
+        log_message(LOG_INFO, "Sending frame to client %d: %s", cmd->dest_id, wait_msg);
+        send(receiver_fd, wait_msg, strlen(wait_msg), 0);
+
+        sleep(1); // Simulate transfer delay
+
+        char ready_msg[MAX_COMMAND_LENGTH];
+        build_frame("file", cmd->src_id, cmd->dest_id, cmd->message, "READY", ready_msg);
+        send(receiver_fd, ready_msg, strlen(ready_msg), 0);
+
+        char done_msg[MAX_COMMAND_LENGTH];
+        build_frame("file", 0, cmd->dest_id, "Transfer complete", "DONE", done_msg);
+        send(receiver_fd, done_msg, strlen(done_msg), 0);
+    } else if (strcmp(cmd->channel, "game") == 0) {
+        char ack_msg[MAX_COMMAND_LENGTH];
+        build_frame("game", 0, cmd->src_id, "Game logic not implemented", "ACK", ack_msg);
+        send(get_socket_by_id(cmd->src_id), ack_msg, strlen(ack_msg), 0);
     } else {
-        log_message(LOG_WARN, "Unknown command: %s", cmd->command);
+        log_message(LOG_WARN, "Unknown channel: %s", cmd->channel);
     }
-}
-
-/**
- * @brief Dispatches chat commands received on chat port.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_chat_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd || cmd->arg_count < 1) {
-        log_message(LOG_WARN, "[chat] Missing arguments.");
-        return;
-    }
-    send_chat(connfd, cmd->args[0]);
-}
-
-/**
- * @brief Dispatches file commands received on file port.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_file_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd || cmd->arg_count < 1) {
-        log_message(LOG_WARN, "[file] Missing filename argument.");
-        return;
-    }
-    send_file_to_client(&connfd, cmd->args[0], cli);
-}
-
-/**
- * @brief Dispatches game commands received on game port.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_game_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd || cmd->arg_count < 1) {
-        log_message(LOG_WARN, "[game] Missing game command argument.");
-        return;
-    }
-    handle_game_command(cmd);
 }

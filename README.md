@@ -89,15 +89,43 @@ This system now supports multi-port routing and feature-specific client connecti
 Each command follows a structured format:
 
 ```Code
-<CRC>|<OPTION>|<PAYLOAD>|EOC
+<CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>
 ```
-- CRC → Checksum or integrity marker
 
-- OPTION → Feature type (msg, file, game)
+- CRC → Integrity checksum for the MESSAGE field
 
-- PAYLOAD → Message, file path, or game command
+- CHANNEL → Feature type: chat, file, game, or system
 
-- EOC → End-of-command delimiter
+- SRC_ID → Sender ID (0 = server)
+
+- DEST_ID → Receiver ID (0 = server)
+
+- MESSAGE → Actual content (chat text, file path, game command, or control message)
+
+- STATUS → Frame status:
+
+    - WAIT → Receiver should prepare for incoming data
+
+    - READY → Receiver is ready to receive
+
+    - DONE → Transfer complete
+
+    - ACK → Acknowledgment of receipt
+
+    - LIST → Server sends list of active clients
+
+    - ID_ASSIGN → Server assigns client ID
+
+    - ERR → Error or rejection
+
+##### 🧠 Notes
+The protocol is feature-aware: each port (chat, file, game) enforces its own logic.
+
+Client IDs are assigned by the server and used for routing.
+
+Future versions may replace IDs with names and support multi-frame transfers.
+
+The STATUS field replaces the static EOC marker, enabling richer delivery semantics.
 
 ### 🧩 Multi-Port Architecture
 The server listens on dedicated ports for each feature:

@@ -1,11 +1,11 @@
 /**
  * @file server.c
- * @brief Main server loop: socket setup, client registry, protocol dispatch, and timeout handling.
- *        Supports multi-port feature routing and delivery confirmation.
- *       Graceful shutdown via SIGINT.
+ * @brief Multi-threaded server implementation supporting chat, file, and game features.
+ *        Accepts clients on multiple ports and spawns a dedicated thread per connection.
+ *        Uses cross-platform thread abstraction for compatibility with Windows and Linux.
+ * @author Oussama
+ * @version 2.0
  * @date 2025-09-14
- * @author Oussama Amara
- * @version 1.2
  */
 
 #include "server.h"
@@ -14,6 +14,7 @@
 #include "config.h"
 #include "logger.h"
 #include "protocol.h"
+#include "parser.h"
 #include "client_registry.h"
 #include "platform.h"
 
@@ -24,6 +25,7 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
+typedef int socklen_t; 
 #else
 #include <unistd.h>
 #endif
@@ -34,6 +36,65 @@ void handle_sigint(int sig) {
     (void)sig;
     log_message(LOG_INFO, "Interrupt received. Shutting down server...");
     server_running = 0;
+}
+
+THREAD_FUNC handle_client(void* arg) {
+    ClientArgs* args = (ClientArgs*)arg;
+    int connfd = args->connfd;
+    struct sockaddr_in cli = args->cli;
+    free(arg);
+
+    int client_id = register_client(connfd, cli);
+    if (client_id < 0) {
+        log_message(LOG_ERROR, "Max clients reached.");
+#ifdef _WIN32
+        closesocket(connfd);
+#else
+        close(connfd);
+#endif
+        THREAD_RETURN;
+    }
+
+    char buffer[MAX_COMMAND_LENGTH];
+    build_frame("system", 0, client_id, "ID_ASSIGN", "READY", buffer);
+    send(connfd, buffer, strlen(buffer), 0);
+    log_message(LOG_INFO, "Sent ID_ASSIGN to client %d", client_id);
+
+    for (int j = 0; j < MAX_CLIENTS; ++j) {
+        if (j + 1 != client_id && get_socket_by_id(j + 1) > 0) {
+            char list_msg[MAX_COMMAND_LENGTH];
+            snprintf(list_msg, sizeof(list_msg), "%d,%s", j + 1, "Client");
+            build_frame("system", 0, client_id, list_msg, "LIST", buffer);
+            send(connfd, buffer, strlen(buffer), 0);
+        }
+    }
+
+    build_frame("system", 0, client_id, "You may begin", "START", buffer);
+    send(connfd, buffer, strlen(buffer), 0);
+
+    int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
+    if (received > 0) {
+        buffer[received] = '\0';
+        log_message(LOG_INFO, "Received raw frame from client %d: %s", client_id, buffer);
+
+        ParsedCommand cmd;
+        if (parse_command(buffer, &cmd) == 0) {
+            log_message(LOG_INFO, "Parsed frame → channel=%s src=%d dest=%d status=%s msg=%s",
+                        cmd.channel, cmd.src_id, cmd.dest_id, cmd.status, cmd.message);
+            dispatch_command(&cmd);
+        } else {
+            log_message(LOG_WARN, "Failed to parse frame from client %d", client_id);
+        }
+    }
+
+#ifdef _WIN32
+    closesocket(connfd);
+#else
+    close(connfd);
+#endif
+    unregister_client(client_id);
+    log_message(LOG_INFO, "Client %d disconnected.", client_id);
+    THREAD_RETURN;
 }
 
 int run_server(int argc, char** argv) {
@@ -74,71 +135,27 @@ int run_server(int argc, char** argv) {
     while (server_running) {
         for (int i = 0; i < 3; ++i) {
             struct sockaddr_in cli;
-            int len = sizeof(cli);
+            socklen_t len = sizeof(cli);
             int connfd = accept(sockfds[i], (struct sockaddr*)&cli, &len);
-            log_message(LOG_INFO, "Accepted connection on port %d from %s:%d",
-            ports[i], inet_ntoa(cli.sin_addr), ntohs(cli.sin_port));
-
             if (connfd < 0) continue;
 
-            int client_id = register_client(connfd, cli);
-            if (client_id < 0) {
-                log_message(LOG_ERROR, "Max clients reached.");
-            #ifdef _WIN32
-                closesocket(connfd);
-            #else
-                close(connfd);
-            #endif
-                continue;
-            }
+            log_message(LOG_INFO, "Accepted connection on port %d from %s:%d",
+                        ports[i], inet_ntoa(cli.sin_addr), ntohs(cli.sin_port));
 
-            char welcome[MAX_COMMAND_LENGTH];
-            build_frame("system", 0, client_id, "ID_ASSIGN", "READY", welcome);
-            log_message(LOG_INFO, "Sending ID assignment to client %d: %s", client_id, welcome);
-            send(connfd, welcome, strlen(welcome), 0);
+            ClientArgs* args = malloc(sizeof(ClientArgs));
+            args->connfd = connfd;
+            args->cli = cli;
+            args->port = ports[i];
 
-            for (int j = 0; j < MAX_CLIENTS; ++j) {
-                if (j + 1 != client_id && get_socket_by_id(j + 1) > 0) {
-                    char list_msg[MAX_COMMAND_LENGTH];
-                    //prepare client list message
-                    snprintf(list_msg, sizeof(list_msg), "%d,%s", j + 1, "Client");
-                    build_frame("system", 0, client_id, list_msg, "LIST", welcome);
-                    send(connfd, welcome, strlen(welcome), 0);
-                }
-            }
-            char buffer[MAX_COMMAND_LENGTH] = {0};
-            //inform the client that he can start sending
-            build_frame("system", 0, client_id, "You may begin", "START", buffer);
-            send(connfd, buffer, strlen(buffer), 0);
-            log_message(LOG_INFO, "Client %d registered.", client_id);
-
-            int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
-            log_message(LOG_INFO, "Received raw frame from client %d: %s", client_id, buffer);
-            if (received <= 0) {
-                log_message(LOG_WARN, "Client disconnected or failed to send.");
-                unregister_client(client_id);
-                continue;
-            }
-            buffer[received] = '\0';
-            log_message(LOG_INFO, "Received raw frame from client %d: %s", client_id, buffer);
-
-            ParsedCommand cmd;
-            if (parse_command(buffer, &cmd) == 0) {
-                log_message(LOG_INFO, "Parsed frame → channel=%s src=%d dest=%d status=%s msg=%s",
-                            cmd.channel, cmd.src_id, cmd.dest_id, cmd.status, cmd.message);
-                dispatch_command(&cmd);
+            thread_t tid;
+            if (create_thread(&tid, handle_client, args) == 0) {
+                detach_thread(tid);
             } else {
-                log_message(LOG_WARN, "Failed to parse frame from client %d", client_id);
+                log_message(LOG_ERROR, "Failed to create thread.");
+                free(args);
             }
-
-
-        #ifdef _WIN32
-            closesocket(connfd);
-        #else
-            close(connfd);
-        #endif;
         }
-        //we wait 30 seconds before kicking out inactive clients
+
         check_timeouts(30);
         if (!has_active_clients()) {
             log_message(LOG_INFO, "No active clients. Sleeping...");
@@ -147,11 +164,11 @@ int run_server(int argc, char** argv) {
     }
 
     for (int i = 0; i < 3; ++i) {
-    #ifdef _WIN32
+#ifdef _WIN32
         closesocket(sockfds[i]);
-    #else
+#else
         close(sockfds[i]);
-    #endif;
+#endif
     }
 
     win_socket_cleanup();
@@ -159,6 +176,9 @@ int run_server(int argc, char** argv) {
     return 0;
 }
 
+/**
+ * @brief Main function wrapper.
+ */
 int main(int argc, char** argv) {
     return run_server(argc, argv);
 }

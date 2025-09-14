@@ -17,7 +17,29 @@
   #include <netinet/in.h>
   #include <arpa/inet.h>
 #endif
+#include "platform_thread.h"
+/**
+ * @brief Struct to pass client connection data to thread.
+ */
+typedef struct {
+    int connfd;
+    int port;
+    struct sockaddr_in cli;
+} ClientArgs;
 
+/**
+ * @brief Signal handler for graceful shutdown.
+ * @param sig Signal number (unused).
+ * @return void
+ */
+void handle_sigint(int sig) ;
+
+/**
+ * @brief Thread function to handle individual client connection.
+ * @param arg Pointer to ClientArgs containing socket and client info.
+ * @return THREAD_FUNC return value (platform-specific).
+ */
+THREAD_FUNC handle_client(void* arg);
 
 /**
  * @brief Starts the server with the given arguments.

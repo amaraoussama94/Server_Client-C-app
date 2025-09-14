@@ -1,7 +1,8 @@
 /**
  * @file client.c
- * @brief Implements the client logic: config loading, connection setup, ID assignment, and message dispatch.
- *        Uses custom protocol format: <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|EOM
+ * @brief Implements client logic: config loading, connection setup, ID assignment, message dispatch, and ACK handling.
+ *        Uses custom protocol format: <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>
+ *        Supports chat, file, and game features based on port configuration.
  * @author Oussama Amara
  * @version 1.0
  * @date 2025-09-14
@@ -83,27 +84,66 @@ int run_client(int argc, char** argv) {
     log_message(LOG_INFO, "[✓] Connected to server");
 
     char buffer[MAX_COMMAND_LENGTH];
-    recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-
-    ParsedCommand cmd;
     int my_id = -1;
-    if (parse_command(buffer, &cmd) == 0 && strcmp(cmd.message, "ID_ASSIGN") == 0) {
-        my_id = cmd.dest_id;
-        log_message(LOG_INFO, "Assigned client ID: %d", my_id);
-    } else {
+
+    // Receive ID assignment and client list
+    while (1) {
+        int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+        if (received <= 0) break;
+        buffer[received] = '\0';
+
+        ParsedCommand cmd;
+        if (parse_command(buffer, &cmd) == 0) {
+            // wait for serveur  ID_ASSIGN 
+            if (strcmp(cmd.status, "READY") == 0 && strcmp(cmd.message, "ID_ASSIGN") == 0) {
+                my_id = cmd.dest_id;
+                log_message(LOG_INFO, "Assigned client ID: %d", my_id);
+                //list active clients
+            } else if (strcmp(cmd.status, "LIST") == 0) {
+                log_message(LOG_INFO, "Active client: %s", cmd.message);
+            } else {
+                break; // Exit loop when actual message exchange begins
+            }
+        }
+    }
+
+    if (my_id < 0) {
         log_message(LOG_ERROR, "Failed to receive ID assignment.");
         return 1;
     }
 
-    // Example: send message to another client
-    int target_id = 2;  // Replace with actual target
-    build_frame("chat", my_id, target_id, "Hello from client!", buffer);
+    // Prompt user for target ID and message
+    int target_id;
+    char message[MAX_MESSAGE_LENGTH];
+
+    printf("Enter target client ID: ");
+    scanf("%d", &target_id);
+    getchar(); // Consume newline
+
+    printf("Enter message or file path: ");
+    fgets(message, sizeof(message), stdin);
+    message[strcspn(message, "\n")] = '\0';
+
+    // Determine channel based on port
+    const char* channel = "chat";
+    if (cfg.port == cfg.port_file) channel = "file";
+    else if (cfg.port == cfg.port_game) channel = "game";
+
+    build_frame(channel, my_id, target_id, message, "SEND", buffer);
     send(sockfd, buffer, strlen(buffer), 0);
 
-    // Wait for delivery confirmation
-    recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-    if (parse_command(buffer, &cmd) == 0 && strcmp(cmd.message, "DELIVERY_CONFIRMED") == 0) {
-        log_message(LOG_INFO, "Message delivered to client %d", cmd.dest_id);
+    // Wait for ACK or delivery confirmation
+    int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+    if (received > 0) {
+        buffer[received] = '\0';
+        ParsedCommand cmd;
+        if (parse_command(buffer, &cmd) == 0) {
+            if (strcmp(cmd.status, "ACK") == 0 || strcmp(cmd.status, "DELIVERY_CONFIRMED") == 0) {
+                log_message(LOG_INFO, "Server confirmed delivery: %s", cmd.message);
+            } else {
+                log_message(LOG_INFO, "Server response: %s [%s]", cmd.message, cmd.status);
+            }
+        }
     }
 
 #ifdef _WIN32

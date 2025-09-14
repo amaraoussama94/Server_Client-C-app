@@ -1,10 +1,11 @@
 /**
  * @file server.c
- * @brief Implements the main server logic: multi-port socket setup, config loading, signal handling, client registry, and feature dispatch loop.
- *        Supports graceful shutdown via SIGINT and delivery confirmation via custom protocol framing.
- * @author Oussama Amara
- * @version 1.0
+ * @brief Main server loop: socket setup, client registry, protocol dispatch, and timeout handling.
+ *        Supports multi-port feature routing and delivery confirmation.
+ *       Graceful shutdown via SIGINT.
  * @date 2025-09-14
+ * @author Oussama Amara
+ * @version 1.2
  */
 
 #include "server.h"
@@ -86,8 +87,18 @@ int run_server(int argc, char** argv) {
             }
 
             char welcome[MAX_COMMAND_LENGTH];
-            build_frame("system", 0, client_id, "ID_ASSIGN", welcome);
+            build_frame("system", 0, client_id, "ID_ASSIGN", "READY", welcome);
             send(connfd, welcome, strlen(welcome), 0);
+
+            for (int j = 0; j < MAX_CLIENTS; ++j) {
+                if (j + 1 != client_id && get_socket_by_id(j + 1) > 0) {
+                    char list_msg[MAX_COMMAND_LENGTH];
+                    //prepare client list message
+                    snprintf(list_msg, sizeof(list_msg), "%d,%s", j + 1, "Client");
+                    build_frame("system", 0, client_id, list_msg, "LIST", welcome);
+                    send(connfd, welcome, strlen(welcome), 0);
+                }
+            }
 
             char buffer[MAX_COMMAND_LENGTH] = {0};
             int received = recv(connfd, buffer, sizeof(buffer) - 1, 0);
@@ -105,8 +116,7 @@ int run_server(int argc, char** argv) {
 
             close(connfd);
         }
-        //Timeout check and sleep if no active clients 
-        // here we wait 30 seconds before kicking out inactive clients
+        //we wait 30 seconds before kicking out inactive clients
         check_timeouts(30);
         if (!has_active_clients()) {
             log_message(LOG_INFO, "No active clients. Sleeping...");

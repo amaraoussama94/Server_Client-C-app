@@ -1,84 +1,30 @@
-/**
- * @file dispatcher.c
- * @brief Implements dispatching logic for parsed commands.
- *        Routes commands to chat, file, or game handlers based on context or port.
- *        Supports both unified and feature-specific dispatching.
- * @author Oussama Amara
- * @version 0.6
- * @date 2025-09-07
- */
-
 #include "dispatcher.h"
 #include "protocol.h"
-#include "chat.h"
-#include "game.h"
-#include "file_transfer.h"
+#include "client_registry.h"
 #include "logger.h"
 
-/**
- * @brief Legacy dispatcher for unified command routing.
- *        Matches command name and routes to appropriate handler.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd) return;
+void dispatch_command(const ParsedCommand* cmd) {
+    update_activity(cmd->src_id);
 
-    if (cmd->arg_count < 1) {
-        log_message(LOG_WARN, "Command '%s' missing arguments.", cmd->command);
+    // Handle special system messages
+    if (strcmp(cmd->channel, "system") == 0) {
+        if (strcmp(cmd->message, "RECEIVED_OK") == 0) {
+            int sender_fd = get_socket_by_id(cmd->dest_id);
+            char ack_msg[MAX_COMMAND_LENGTH];
+            build_frame("system", 0, cmd->dest_id, "DELIVERY_CONFIRMED", ack_msg);
+            send(sender_fd, ack_msg, strlen(ack_msg), 0);
+        }
+        return;
+    }
+    // Forward to destination client
+    int receiver_fd = get_socket_by_id(cmd->dest_id);
+    // If receiver not found, log and drop
+    if (receiver_fd < 0) {
+        log_message(LOG_WARN, "Receiver %d not found.", cmd->dest_id);
         return;
     }
 
-    if (strcmp(cmd->command, "chat") == 0) {
-        send_chat(connfd, cmd->args[0]);
-    } else if (strcmp(cmd->command, "file") == 0) {
-        send_file_to_client(&connfd, cmd->args[0], cli);
-    } else if (strcmp(cmd->command, "game") == 0) {
-        handle_game_command(cmd);
-    } else {
-        log_message(LOG_WARN, "Unknown command: %s", cmd->command);
-    }
-}
-
-/**
- * @brief Dispatches chat commands received on chat port.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_chat_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd || cmd->arg_count < 1) {
-        log_message(LOG_WARN, "[chat] Missing arguments.");
-        return;
-    }
-    send_chat(connfd, cmd->args[0]);
-}
-
-/**
- * @brief Dispatches file commands received on file port.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_file_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd || cmd->arg_count < 1) {
-        log_message(LOG_WARN, "[file] Missing filename argument.");
-        return;
-    }
-    send_file_to_client(&connfd, cmd->args[0], cli);
-}
-
-/**
- * @brief Dispatches game commands received on game port.
- * @param cmd Parsed command structure.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_game_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli) {
-    if (!cmd || cmd->arg_count < 1) {
-        log_message(LOG_WARN, "[game] Missing game command argument.");
-        return;
-    }
-    handle_game_command(cmd);
+    char forward[MAX_COMMAND_LENGTH];
+    build_frame(cmd->channel, cmd->src_id, cmd->dest_id, cmd->message, forward);
+    send(receiver_fd, forward, strlen(forward), 0);
 }

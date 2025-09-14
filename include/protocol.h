@@ -17,16 +17,40 @@
  */
 #define MAX_COMMAND_ARGS 10
 #define MAX_COMMAND_LENGTH 1024
-
 /**
  * @brief Represents a parsed command from the client.
  *        Includes command type and arguments.
  */
 typedef struct {
-    char command[64];                     ///< Feature type (e.g., "msg", "file", "game")
-    char args[MAX_COMMAND_ARGS][256];    ///< Payload arguments
-    int arg_count;                       ///< Number of arguments
+    char crc[9];           // CRC checksum
+    char channel[16];      // Feature: chat, file, game
+    int src_id;            // Sender ID (0 = server)
+    int dest_id;           // Receiver ID (0 = server)
+    char message[512];     // Actual payload
 } ParsedCommand;
+
+/**
+ * @brief Builds a protocol frame from components.
+ *       Format: <CRC>|<OPTION>|<PAYLOAD>|EOC
+ * @param channel Feature channel (chat, file, game)
+ * @param src_id Source ID (0 = server)
+ * @param dest_id Destination ID (0 = server)
+ * @param message Payload message
+ * @param out_frame Output buffer for the constructed frame
+ * @return void
+ */
+void build_frame(const char* channel, int src_id, int dest_id, const char* message, char* out_frame);
+
+/**
+ * @brief Parses and validates a protocol frame.
+ *       Format: <CRC>|<OPTION>|<PAYLOAD>|EOC
+ *      Validates CRC before accepting the command.
+ * @param input Raw input string.
+ * @param cmd Output command structure.
+ * @return 0 on success, -1 on failure.
+ */
+int decode_frame(const char* input, ParsedCommand* cmd);
+
 
 /**
  * @brief Parses a raw message into a structured command.

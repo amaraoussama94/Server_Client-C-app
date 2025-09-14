@@ -12,7 +12,6 @@
 #include "config.h"
 #include "logger.h"
 #include "protocol.h"
-#include "parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>

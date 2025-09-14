@@ -18,6 +18,9 @@
   #include <netinet/in.h>
   #include <arpa/inet.h>
 #endif
+#include <time.h>
+#include <stdio.h>
+
 
 /**
  * @brief Maximum number of simultaneous clients.

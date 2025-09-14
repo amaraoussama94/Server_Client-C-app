@@ -28,7 +28,7 @@ int parse_command(const char* input, ParsedCommand* cmd) {
 
     // Future: validate channel, status, and message format
     log_message(LOG_DEBUG, "Command validated: %s → %s [%s]",
-                cmd.channel, cmd.message, cmd.status);
+                cmd->channel, cmd->message, cmd->status);
     return 0;
 }
 

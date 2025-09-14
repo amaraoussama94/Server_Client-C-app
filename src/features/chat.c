@@ -1,6 +1,10 @@
 /**
  * @file chat.c
  * @brief Implements server-side chat message handling.
+ *      Sends chat messages to the intended recipient.
+ * @date 2025-09-14
+ * @author Oussama Amara
+ * @version 1.0
  */
 
 #include "chat.h"

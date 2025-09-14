@@ -14,7 +14,13 @@
 #else
     #define PATH_SEPARATOR '/'
 #endif
+/**
+ * @brief Sleeps for the specified number of milliseconds.
+ * @param milliseconds Number of milliseconds to sleep.
+ * @return void.
+ */
 
+void sleep_ms(int milliseconds);
 /**
  * @brief Returns the platform-specific temporary directory path.
  * @return Path string.

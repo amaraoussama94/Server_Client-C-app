@@ -13,7 +13,7 @@
 
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
-
+#include <stdlib.h>
 #define MAX_COMMAND_LENGTH 1024
 #define MAX_MESSAGE_LENGTH 512
 

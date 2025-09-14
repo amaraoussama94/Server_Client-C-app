@@ -14,7 +14,6 @@
 #include "config.h"
 #include "logger.h"
 #include "protocol.h"
-#include "parser.h"
 #include "client_registry.h"
 #include "platform.h"
 
@@ -82,7 +81,11 @@ int run_server(int argc, char** argv) {
             int client_id = register_client(connfd, cli);
             if (client_id < 0) {
                 log_message(LOG_ERROR, "Max clients reached.");
+            #ifdef _WIN32
+                closesocket(connfd);
+            #else
                 close(connfd);
+            #endif
                 continue;
             }
 
@@ -114,7 +117,11 @@ int run_server(int argc, char** argv) {
                 dispatch_command(&cmd);
             }
 
+        #ifdef _WIN32
+            closesocket(connfd);
+        #else
             close(connfd);
+        #endif;
         }
         //we wait 30 seconds before kicking out inactive clients
         check_timeouts(30);
@@ -125,7 +132,11 @@ int run_server(int argc, char** argv) {
     }
 
     for (int i = 0; i < 3; ++i) {
+    #ifdef _WIN32
+        closesocket(sockfds[i]);
+    #else
         close(sockfds[i]);
+    #endif;
     }
 
     win_socket_cleanup();

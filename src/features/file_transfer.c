@@ -1,6 +1,10 @@
 /**
  * @file file_transfer.c
  * @brief Implements server-side file transfer logic.
+ *     Sends files to clients upon request.
+ * @date 2025-09-14
+ * @author Oussama Amara
+ * @version 1.0
  */
 
 #include "file_transfer.h"

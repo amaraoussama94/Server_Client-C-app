@@ -7,28 +7,29 @@
  * @author Oussama Amara
  * @version 0.1
  */
+
 #include "client_registry.h"
 #include "logger.h"
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 
 static ClientInfo clients[MAX_CLIENTS];
 
 void init_registry() {
     memset(clients, 0, sizeof(clients));
-    //clear all client IDs
+    // init all IDs to -1 (indicating free slots)
     for (int i = 0; i < MAX_CLIENTS; ++i) clients[i].id = -1;
 }
 
 int register_client(int socket, struct sockaddr_in addr) {
     for (int i = 0; i < MAX_CLIENTS; ++i) {
         if (clients[i].id == -1) {
-            clients[i].id = i + 1;// IDs start at 1 0 reserved for server
+            clients[i].id = i + 1;// IDs start from 1 0 is reserved for server
             clients[i].socket = socket;
             clients[i].addr = addr;
             clients[i].last_activity = time(NULL);
             clients[i].active = 1;
+            snprintf(clients[i].name, sizeof(clients[i].name), "Client%d", clients[i].id);
             return clients[i].id;
         }
     }
@@ -52,7 +53,7 @@ int get_id_by_socket(int socket) {
 void update_activity(int id) {
     for (int i = 0; i < MAX_CLIENTS; ++i)
         if (clients[i].id == id)
-            clients[i].last_activity = time(NULL);// update last activity timestamp
+            clients[i].last_activity = time(NULL);
 }
 
 void unregister_client(int id) {

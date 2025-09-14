@@ -32,8 +32,8 @@ typedef struct {
     struct sockaddr_in addr;
     time_t last_activity;
     int active;
+    char name[32]; // Optional: for future name-based routing
 } ClientInfo;
-
 /** 
  * @brief Initializes the client registry.
  * @param void

@@ -234,34 +234,74 @@ Document new status codes and frame format
 
 ### Overview
 
-The server uses a `thread-per-client model` to handle multiple connections concurrently. This ensures that one client’s activity does not block others.
+The server uses a hybrid concurrency model combining:
 
-###  Implementation
+- select() for monitoring multiple listening ports simultaneously
 
-- On accept(), the server spawns a thread using create_thread()
+- Thread-per-client for handling each accepted connection independently
 
-- Each thread runs handle_client(), which:
+This ensures scalable, non-blocking client acceptance across chat, file, and game features.
+
+###  Architecture
+
+```text
++------------------+
+| Server Main Loop |
++------------------+
+        |
+        v
++------------------+     +------------------+     +------------------+
+| select() on port | --> | accept() on chat | --> | spawn thread     |
+| chat/file/game   |     | accept() on file |     | handle_client()  |
++------------------+     | accept() on game |     +------------------+
+                         +------------------+
+
+```
+
+###  ⚙️ How It Works
+
+- The server listens on multiple ports (chat, file, game)
+
+- select() monitors all sockets for incoming connections
+
+- When a socket is ready, accept() is called
+
+- A new thread is spawned to handle the client:
 
     - Assigns client ID
 
     - Sends active client list
 
-    - Waits for message
+    - Completes handshake with START frame
 
-    - Dispatches command
+    - Receives and dispatches messages
 
     - Cleans up on disconnect
 
 ###  Cross-Platform Support
 
 ```text
-|Platform	| Thread API Used |
------------------------------
-|Linux    |	pthread_create()|
------------------------------
-|Windows  |	CreateThread()  |
------------------------------
+|Platform	| Socket API      |	 Thread API Used |
+----------------------------------------------
+|Linux    | select()        |	pthread_create()|
+-----------------------------------------------
+|Windows  | select()        |	CreateThread()  |
+-----------------------------------------------
 ```
+
+Thread abstraction is handled via platform_thread.[h|c].
+
+### 🛡️ Benefits
+
+- ✅ Accepts clients on all ports concurrently
+
+-✅ Prevents blocking on any single port
+
+-✅ Scales to multiple clients per feature
+
+-✅ Clean separation of connection and logic
+
+- ✅ Compatible with both Windows and Linux
 
 ### Thread Lifecycle
 

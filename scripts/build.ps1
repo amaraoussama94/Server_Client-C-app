@@ -6,8 +6,7 @@ make clean
 make all
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "[✓] Build successful."
+    Write-Host "[OK] Build successful."
 } else {
-    Write-Host "[✗] Build failed."
+    Write-Host "[FAIL] Build failed."
 }
-

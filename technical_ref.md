@@ -230,3 +230,83 @@ Document new status codes and frame format
 
 ---
 
+## 🧵 Threading Model
+
+### Overview
+
+The server uses a hybrid concurrency model combining:
+
+- select() for monitoring multiple listening ports simultaneously
+
+- Thread-per-client for handling each accepted connection independently
+
+This ensures scalable, non-blocking client acceptance across chat, file, and game features.
+
+###  Architecture
+
+```text
++------------------+
+| Server Main Loop |
++------------------+
+        |
+        v
++------------------+     +------------------+     +------------------+
+| select() on port | --> | accept() on chat | --> | spawn thread     |
+| chat/file/game   |     | accept() on file |     | handle_client()  |
++------------------+     | accept() on game |     +------------------+
+                         +------------------+
+
+```
+
+###  ⚙️ How It Works
+
+- The server listens on multiple ports (chat, file, game)
+
+- select() monitors all sockets for incoming connections
+
+- When a socket is ready, accept() is called
+
+- A new thread is spawned to handle the client:
+
+    - Assigns client ID
+
+    - Sends active client list
+
+    - Completes handshake with START frame
+
+    - Receives and dispatches messages
+
+    - Cleans up on disconnect
+
+###  Cross-Platform Support
+
+```text
+|Platform	| Socket API      |	 Thread API Used |
+----------------------------------------------
+|Linux    | select()        |	pthread_create()|
+-----------------------------------------------
+|Windows  | select()        |	CreateThread()  |
+-----------------------------------------------
+```
+
+Thread abstraction is handled via platform_thread.[h|c].
+
+### 🛡️ Benefits
+
+- ✅ Accepts clients on all ports concurrently
+
+-✅ Prevents blocking on any single port
+
+-✅ Scales to multiple clients per feature
+
+-✅ Clean separation of connection and logic
+
+- ✅ Compatible with both Windows and Linux
+
+### Thread Lifecycle
+
+- Threads are detached after creation
+
+- Socket is closed and client unregistered on exit
+
+- Shared resources (e.g. registry) should be protected with mutexes if extended

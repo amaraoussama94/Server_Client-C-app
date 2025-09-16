@@ -1,5 +1,7 @@
-#win powershell
-# Run serveur  with optional config
+# PowerShell - run_server.ps1
+# Exécute le serveur avec un fichier de config optionnel
 
-CONFIG=${1:-../assets/server.cfg}
-../build/bin/server.exe "$CONFIG"
+$CONFIG = if ($args.Count -ge 1) { $args[0] } else { "../assets/server.cfg" }
+
+Write-Host "Using config file: $CONFIG"
+& "../build/bin/server.exe" $CONFIG

@@ -1,11 +1,11 @@
 /**
  * @file server.c
- * @brief Multi-threaded server implementation supporting chat, file, and game features.
- *        Accepts clients on multiple ports and spawns a dedicated thread per connection.
- *        Uses cross-platform thread abstraction for compatibility with Windows and Linux.
+ * @brief Multi-threaded, multi-port server using select() for concurrent client acceptance.
+ *        Supports chat, file, and game features with thread-per-client handling.
+ *        Compatible with both Windows and Linux platforms.
  * @author Oussama
- * @version 2.0
- * @date 2025-09-14
+ * @version 3.0
+ * @date 2025-09-16
  */
 
 #include "server.h"
@@ -16,6 +16,7 @@
 #include "protocol.h"
 #include "client_registry.h"
 #include "platform.h"
+#include "platform_thread.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,20 +25,28 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
-typedef int socklen_t; 
-#pragma comment(lib, "ws2_32.lib")
+#define socklen_t int
 #else
 #include <unistd.h>
+#include <sys/select.h>
 #endif
 
 volatile sig_atomic_t server_running = 1;
 
+/**
+ * @brief Signal handler for graceful shutdown.
+ */
 void handle_sigint(int sig) {
     (void)sig;
     log_message(LOG_INFO, "Interrupt received. Shutting down server...");
     server_running = 0;
 }
 
+/**
+ * @brief Thread function to handle individual client connection.
+ * @param arg Pointer to ClientArgs containing socket and client info.
+ * @return THREAD_FUNC return value (platform-specific).
+ */
 THREAD_FUNC handle_client(void* arg) {
     ClientArgs* args = (ClientArgs*)arg;
     int connfd = args->connfd;
@@ -68,8 +77,7 @@ THREAD_FUNC handle_client(void* arg) {
             send(connfd, buffer, strlen(buffer), 0);
         }
     }
-    // work around to avoid message clumping 
-    // to be improved with proper message framing
+
     build_frame("system", 0, client_id, "You may begin", "START", buffer);
     send(connfd, buffer, strlen(buffer), 0);
 
@@ -98,6 +106,10 @@ THREAD_FUNC handle_client(void* arg) {
     THREAD_RETURN;
 }
 
+/**
+ * @brief Main server entry point. Loads config, sets up sockets, and uses select() to monitor all ports.
+ *        Spawns threads for each accepted client.
+ */
 int run_server(int argc, char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <config_path>\n", argv[0]);
@@ -134,26 +146,46 @@ int run_server(int argc, char** argv) {
     }
 
     while (server_running) {
+        // Use select() to monitor multiple sockets
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        int maxfd = -1;
+
+        // Add all listening sockets to the readfds set for select() monitoring.
+        // Also track the highest socket descriptor for select()'s maxfd parameter.
         for (int i = 0; i < 3; ++i) {
-            struct sockaddr_in cli;
-            socklen_t len = sizeof(cli);
-            int connfd = accept(sockfds[i], (struct sockaddr*)&cli, &len);
-            if (connfd < 0) continue;
+            FD_SET(sockfds[i], &readfds);
+            if (sockfds[i] > maxfd) maxfd = sockfds[i];
+        }
 
-            log_message(LOG_INFO, "Accepted connection on port %d from %s:%d",
-                        ports[i], inet_ntoa(cli.sin_addr), ntohs(cli.sin_port));
+        struct timeval timeout = { .tv_sec = 1, .tv_usec = 0 };
+        int ready = select(maxfd + 1, &readfds, NULL, NULL, &timeout);
 
-            ClientArgs* args = malloc(sizeof(ClientArgs));
-            args->connfd = connfd;
-            args->cli = cli;
-            args->port = ports[i];
+        if (ready > 0) {
+            for (int i = 0; i < 3; ++i) {
+                // Check if this socket is ready to accept a new connection
+                if (FD_ISSET(sockfds[i], &readfds)) {
+                    struct sockaddr_in cli;
+                    socklen_t len = sizeof(cli);
+                    int connfd = accept(sockfds[i], (struct sockaddr*)&cli, &len);
+                    if (connfd < 0) continue;
 
-            thread_t tid;
-            if (create_thread(&tid, handle_client, args) == 0) {
-                detach_thread(tid);
-            } else {
-                log_message(LOG_ERROR, "Failed to create thread.");
-                free(args);
+                    log_message(LOG_INFO, "Accepted connection on port %d from %s:%d",
+                                ports[i], inet_ntoa(cli.sin_addr), ntohs(cli.sin_port));
+
+                    ClientArgs* args = malloc(sizeof(ClientArgs));
+                    args->connfd = connfd;
+                    args->cli = cli;
+                    args->port = ports[i];
+
+                    thread_t tid;
+                    if (create_thread(&tid, handle_client, args) == 0) {
+                        detach_thread(tid);
+                    } else {
+                        log_message(LOG_ERROR, "Failed to create thread.");
+                        free(args);
+                    }
+                }
             }
         }
 

@@ -29,28 +29,4 @@
  */
 void dispatch_command(const ParsedCommand* cmd);
 
-/**
- * @brief Dispatches chat-related commands.
- * @param cmd Pointer to parsed command.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_chat_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli);
-
-/**
- * @brief Dispatches file-related commands.
- * @param cmd Pointer to parsed command.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_file_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli);
-
-/**
- * @brief Dispatches game-related commands.
- * @param cmd Pointer to parsed command.
- * @param connfd Connection file descriptor.
- * @param cli Client address structure.
- */
-void dispatch_game_command(const ParsedCommand* cmd, int connfd, struct sockaddr_in cli);
-
 #endif // DISPATCHER_H

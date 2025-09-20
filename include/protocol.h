@@ -24,6 +24,8 @@ typedef struct {
     int dest_id;           ///< Receiver ID
     char message[MAX_MESSAGE_LENGTH]; ///< Message content
     char status[16];       ///< Frame status: WAIT, READY, DONE, ACK, ERR, etc.
+    int seq_num;     ///< Sequence number of chunk
+    int is_final;    ///< 1 if last chunk, 0 otherwise
 } ParsedCommand;
 
 /**

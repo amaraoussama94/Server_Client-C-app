@@ -7,24 +7,28 @@ A cross-platform C/C++ client-server architecture supporting chat, file transfer
 ```plaintext
 project-root/
 ├── include/              # Header files
-│   ├── server.h
-│   ├── client.h
-│   ├── protocol.h
-│   ├── file_transfer.h
 │   ├── chat.h
+│   ├── client_registry.h
+│   ├── client.h
+│   ├── config.h
+│   ├── connection.h
+│   ├── crc.h
+│   ├── dispatcher.h
+│   ├── file_transfer.h
 │   ├── game.h
 │   ├── logger.h
+│   ├── platform-thread.h
 │   ├── platform.h
-│   └── config.h
+│   ├── protocol.h
+│   └──server.h 
 ├── src/
 │   ├── server/
 │   │   ├── main.c
 │   │   ├── dispatcher.c
 │   │   ├── connection.c
+│   │   ├── client_registry.c
 │   ├── client/
 │   │   ├── main.c
-│   │   ├── file_client.c
-│   │   ├── chat_client.c
 │   ├── protocol/
 │   │   ├── protocol.c
 │   │   ├── parser.c
@@ -35,6 +39,8 @@ project-root/
 │   ├── utils/
 │   │   ├── logger.c
 │   │   ├── platform.c
+│   │   ├── platform_thread.c
+│   │   ├── crc.c
 │   │   ├── config.c
 ├── assets/               # Shared files
 ├── scripts/              # Bash & PowerShell scripts
@@ -62,7 +68,7 @@ project-root/
 
 ```bash
 ./scripts/run_server.sh assets/server.cfg
-./scripts/run_client.sh assets/client.cfg
+./scripts/run_client.sh assets/client_Chat.cfg
 ```
 
 ## 🛠 Features
@@ -144,7 +150,7 @@ Clients connect to the appropriate port based on their mode, ensuring clean sepa
 Clients specify their mode via config or CLI:
 
 ```bash
-./client --mode file --config assets/client.cfg
+./client --mode file --config assets/client_Chat.cfg
 ```
 Supported modes:
 

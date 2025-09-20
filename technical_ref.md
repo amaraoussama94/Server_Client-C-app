@@ -310,3 +310,53 @@ Thread abstraction is handled via platform_thread.[h|c].
 - Socket is closed and client unregistered on exit
 
 - Shared resources (e.g. registry) should be protected with mutexes if extended
+
+## 📡 Protocol Layer Update — Chunked Chat Messaging
+
+### 🧠 Overview
+
+To support long chat messages and ensure reliable delivery over TCP, the protocol now includes chunked message transmission with sequence numbering and end markers. This allows the server to reassemble messages accurately and detect missing or out-of-order chunks.
+
+### 📦 Frame Format Extension
+
+```text
+<CRC>|chat|SRC_ID|DEST_ID|MESSAGE|CHUNK|SEQ=X|END=0
+<CRC>|chat|SRC_ID|DEST_ID|MESSAGE|CHUNK|SEQ=Y|END=1
+
+```
+### 🔧 New Fields (embedded in status or extended metadata):
+
+```text
+
+|Field	|Description                                          |
+---------------------------------------------------------------
+|CHUNK	|Indicates this frame is part of a multi-part message |
+---------------------------------------------------------------
+|SEQ=X	|Sequence number of the chunk (starting from 0)       |
+---------------------------------------------------------------
+|END=1	|Marks the final chunk of the message                 |
+---------------------------------------------------------------
+```
+
+### 🧩 Reassembly Logic
+
+- Server buffers chunks per (SRC_ID, DEST_ID) pair
+
+- Chunks are stored in order using SEQ=X
+
+- When END=1 is received, the full message is assembled and dispatched
+
+- If chunks are missing or out-of-order, the message is discarded or flagged
+
+### Moderation Layer
+- Before dispatching a reassembled message, the server applies a profanity filter:
+
+- Detects banned words (e.g., "fuck", "shit", etc.)
+
+- If detected:
+
+    - Logs warning
+
+    - Sends ALERT frame to sender
+
+    - Optionally blocks or masks the message

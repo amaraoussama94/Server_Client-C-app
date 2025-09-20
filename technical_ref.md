@@ -360,3 +360,88 @@ To support long chat messages and ensure reliable delivery over TCP, the protoco
     - Sends ALERT frame to sender
 
     - Optionally blocks or masks the message
+    
+## 🔄 Client Readiness & Live List Broadcasting
+
+### 🧠 Overview
+
+To ensure meaningful interaction, the system enforces a minimum of two active clients before allowing chat, file, or game communication. Clients are dynamically updated with the current active list, and interaction is gated until peers are available.
+
+---
+
+### 🚦 Readiness Protocol
+
+- Upon connection, each client receives:
+  - `ID_ASSIGN` frame with their assigned ID
+  - `LIST` frames for each other active client
+  - A `START` frame only if ≥2 clients are active
+  - Otherwise, a `WAIT` frame indicating they must wait
+
+- Clients must wait for `START` before sending any messages.
+
+---
+
+### 🧵 Background Thread: Client List Broadcaster
+
+- A dedicated server thread runs periodically (e.g., every 3 seconds)
+- It sends updated `LIST` frames to all active clients
+- Ensures clients are aware of new peers and disconnections
+
+```text
++------------------------+
+| broadcast_client_list()|
++------------------------+
+        |
+        v
++------------------------+
+| For each active client |
+|   → Send LIST frames   |
+|   → If ≥2 clients      |
+|      → Send START      |
+|   → Else               |
+|      → Send WAIT       |
++------------------------+
+```
+### 🧩 Frame Types
+
+```text
+| Frame Type   | Description                                      |
+|--------------|--------------------------------------------------|
+| `ID_ASSIGN`  | Assigns unique client ID                         |
+| `LIST`       | Lists other active clients                       |
+| `START`      | Indicates client may begin interaction           |
+| `WAIT`       | Indicates client must wait for a peer            |
+```
+---
+
+### 🛡️ Interaction Gating
+
+- Clients must receive a `START` frame before sending any chat, file, or game commands.
+- If only one client is connected, the server sends a `WAIT` frame.
+- Once a second client connects, both receive `START`.
+
+---
+
+### 🔄 Dynamic Updates
+
+- The server continuously monitors client activity.
+- Disconnected clients are removed from others' views.
+- New connections trigger `LIST` updates and potential `START` transitions.
+
+---
+
+### 🧠 Implementation Notes
+
+- `broadcast_client_list()` is launched as a detached thread in `run_server()`
+- Uses `get_socket_by_id()` and `register_client()` from `client_registry.c`
+- Frame construction via `build_frame()` from `protocol.c`
+- Logging via `log_message()` for visibility
+
+---
+
+### ✅ Benefits
+
+- Prevents isolated clients from sending messages with no recipients
+- Enables real-time awareness of active peers
+- Supports scalable, multi-feature interaction
+- Improves UX for chat, file, and game modules

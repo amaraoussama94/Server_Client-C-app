@@ -77,7 +77,8 @@ THREAD_FUNC handle_client(void* arg) {
             send(connfd, buffer, strlen(buffer), 0);
         }
     }
-
+    // Notify client they can start interaction.
+    //To do change this logic as it s temporary fix
     build_frame("system", 0, client_id, "You may begin", "START", buffer);
     send(connfd, buffer, strlen(buffer), 0);
 
@@ -157,7 +158,7 @@ int run_server(int argc, char** argv) {
             FD_SET(sockfds[i], &readfds);
             if (sockfds[i] > maxfd) maxfd = sockfds[i];
         }
-
+        // Set a timeout for select to periodically wake up and check for server shutdown
         struct timeval timeout = { .tv_sec = 1, .tv_usec = 0 };
         int ready = select(maxfd + 1, &readfds, NULL, NULL, &timeout);
 

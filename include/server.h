@@ -34,12 +34,6 @@ typedef struct {
  */
 void handle_sigint(int sig) ;
 
-/**
- * @brief Thread function to handle individual client connection.
- * @param arg Pointer to ClientArgs containing socket and client info.
- * @return THREAD_FUNC return value (platform-specific).
- */
-THREAD_FUNC handle_client(void* arg);
 
 /**
  * @brief Starts the server with the given arguments.

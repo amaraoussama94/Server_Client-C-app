@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -29,7 +28,11 @@
 #include <unistd.h>
 #include <sys/select.h>
 #endif
+#include <signal.h>
 
+/**
+ * @brief Global flag to control server running state.
+ */
 volatile sig_atomic_t server_running = 1;
 
 /**

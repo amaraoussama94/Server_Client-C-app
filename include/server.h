@@ -8,7 +8,6 @@
 
 #ifndef SERVER_H
 #define SERVER_H
-
 #ifdef _WIN32
   #include <winsock2.h>
   #pragma comment(lib, "ws2_32.lib")
@@ -17,6 +16,7 @@
   #include <netinet/in.h>
   #include <arpa/inet.h>
 #endif
+
 #include "platform_thread.h"
 /**
  * @brief Struct to pass client connection data to thread.
@@ -34,12 +34,6 @@ typedef struct {
  */
 void handle_sigint(int sig) ;
 
-/**
- * @brief Thread function to handle individual client connection.
- * @param arg Pointer to ClientArgs containing socket and client info.
- * @return THREAD_FUNC return value (platform-specific).
- */
-THREAD_FUNC handle_client(void* arg);
 
 /**
  * @brief Starts the server with the given arguments.

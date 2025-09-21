@@ -31,6 +31,15 @@
 #include <signal.h>
 
 /**
+ * Time of inactive client after which we kill the client
+ */
+#define CLIENT_TIME_OUT 300 // seconds
+
+/**
+ * Server idle sleep duration when no clients are connected
+ */
+#define SERVER_IDLE_SLEEP_MS 5000 // milliseconds
+/**
  * @brief Global flag to control server running state.
  */
 volatile sig_atomic_t server_running = 1;
@@ -131,11 +140,11 @@ int run_server(int argc, char** argv) {
                 }
             }
         }
-
-        check_timeouts(30);
+        // Periodically check for client timeouts and clean up
+        check_timeouts(CLIENT_TIME_OUT);
         if (!has_active_clients()) {
             log_message(LOG_INFO, "No active clients. Sleeping...");
-            sleep_ms(5000);
+            sleep_ms(SERVER_IDLE_SLEEP_MS);
         }
     }
 

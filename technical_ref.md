@@ -445,3 +445,49 @@ To ensure meaningful interaction, the system enforces a minimum of two active cl
 - Enables real-time awareness of active peers
 - Supports scalable, multi-feature interaction
 - Improves UX for chat, file, and game modules
+
+## 🧠 Client Architecture Update — Event-Driven Messaging
+
+To support real-time communication, the client now uses a dual-threaded model:
+
+- `Main Thread`: Handles user input and message sending
+
+- `Listener Thread`: Continuously listens for incoming frames and displays them
+
+This ensures that clients can receive messages at any time, even while typing or idle.
+
+### 🧵 Thread Model
+
+```text
++---------------------+       +------------------------+
+| Main Thread         |       | Listener Thread        |
+| → User input        |       | → recv() loop          |
+| → Send messages     |       | → parse & display      |
++---------------------+       +------------------------+
+```
+
+### ✅ Benefits
+- Real-time delivery with no missed messages
+
+- No manual “send/receive” mode selection
+
+- Scalable for GUI, mobile, or notification systems
+
+- Future-proof for multi-feature interaction
+
+### 🧩 Frame Handling
+The listener thread parses all incoming frames using parse_command() and logs or displays them based on status and channel. Supported statuses include:
+
+
+|Status  |	Description                  |
+------------------------------------------
+|READY   |Incoming chat or file message  |
+------------------------------------------
+|ACK	   |Delivery confirmation          |
+------------------------------------------
+|LIST	   |Active client update           |
+------------------------------------------
+|START   |Interaction enabled            |
+------------------------------------------
+|WAIT	   |Waiting for another client     |
+------------------------------------------

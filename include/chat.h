@@ -24,9 +24,13 @@
 /**
  * @brief Sends a chat message to the client.
  * @param[in] connfd Socket descriptor.
+ * @param[in] src_id Sender client ID.
+ * @param[in] dest_id Receiver client ID.
  * @param[in] message Message to send.
+  * @return void
  */
-void send_chat(int connfd, const char* message);
+void send_chat(int connfd, int src_id, int dest_id, const char* message);
+
 
 /**
  * @brief Receives a chat message from the client.

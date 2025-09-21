@@ -1,12 +1,13 @@
 /**
- * @file client.c
- * @brief Implements client logic: config loading, connection setup, ID assignment, message dispatch, and ACK handling.
+ * @file client_main.c
+ * @brief Main client logic: config loading, connection setup, handshake, and user input.
+ *        Launches listener thread and sends chat/file/game messages.
  *        Uses custom protocol format: <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>
  *        Supports chat, file, and game features based on port configuration.
- *        Chat messages are chunked and moderated via chat.c.
+ *        Real-time reception is handled by a background listener thread.
  * @author Oussama Amara
- * @version 1.1
- * @date 2025-09-20
+ * @version 1.4
+ * @date 2025-09-21
  */
 
 #include "client.h"
@@ -14,10 +15,8 @@
 #include "logger.h"
 #include "protocol.h"
 #include "chat.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "client_listener.h"
+#include "platform_thread.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -30,6 +29,19 @@ typedef int socklen_t;
 #include <sys/socket.h>
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+volatile int client_running = 1;
+
+/**
+ * @brief Entry point for client logic.
+ *        Loads config, connects to server, starts listener thread, and handles user input.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return Exit code.
+ */
 int run_client(int argc, char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <config_path>\n", argv[0]);
@@ -88,26 +100,17 @@ int run_client(int argc, char** argv) {
     char buffer[MAX_COMMAND_LENGTH];
     int my_id = -1;
 
-    // Handshake: wait for ID_ASSIGN, LIST, and START frames
+    // Handshake: wait for ID_ASSIGN
     while (1) {
-        log_message(LOG_INFO, "Waiting for server response...");
         int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-        if (received <= 0) {
-            log_message(LOG_ERROR, "No ID received from server.");
-            break;
-        }
-        buffer[received] = '\0';
-        log_message(LOG_INFO, "Received raw frame: %s", buffer);
+        if (received <= 0) break;
 
+        buffer[received] = '\0';
         ParsedCommand cmd;
         if (parse_command(buffer, &cmd) == 0) {
             if (strcmp(cmd.status, "READY") == 0 && strcmp(cmd.message, "ID_ASSIGN") == 0) {
                 my_id = cmd.dest_id;
                 log_message(LOG_INFO, "Assigned client ID: %d", my_id);
-            } else if (strcmp(cmd.status, "LIST") == 0) {
-                log_message(LOG_INFO, "Active client: %s", cmd.message);
-            } else if (strcmp(cmd.status, "START") == 0) {
-                log_message(LOG_INFO, "Handshake complete. Ready to communicate.");
                 break;
             }
         }
@@ -118,74 +121,43 @@ int run_client(int argc, char** argv) {
         return 1;
     }
 
-    // Determine communication direction
-    char mode[16];
-    printf("Do you want to send or receive first? (send/receive): ");
-    fgets(mode, sizeof(mode), stdin);
-    mode[strcspn(mode, "\n")] = '\0';
+    init_chat_buffers();  // Initialize chunk reassembly buffers
 
-    // Prompt for target ID and message if sending
-    int target_id = -1;
-    char message[MAX_MESSAGE_LENGTH];
+    // Launch listener thread
+    thread_t listener_thread;
+    create_thread(&listener_thread, client_listener, &sockfd);
+    detach_thread(listener_thread);
 
-    const char* channel = "chat";
-    if (cfg.port == cfg.port_file) channel = "file";
-    else if (cfg.port == cfg.port_game) channel = "game";
+    // Main loop: user input
+    while (client_running) {
+        char message[MAX_MESSAGE_LENGTH];
+        int target_id = -1;
+        // keep looping till client enter  a valid message
+        do{
+            printf("\n[SEND] Enter target client ID: ");
+            fflush(stdout);
+            if (scanf("%d", &target_id) != 1) break;
+            getchar(); // consume newline
 
-    if (strcmp(channel, "chat") == 0) {
-        if (strcmp(mode, "send") == 0) {
-            printf("Enter target client ID: ");
-            scanf("%d", &target_id);
-            getchar(); // Consume newline
-
-            printf("Enter message: ");
+            printf("[SEND] Enter message: ");
+            fflush(stdout);
             fgets(message, sizeof(message), stdin);
-            message[strcspn(message, "\n")] = '\0';
-
-            send_chat(sockfd, message);
-        }
-
-        // Always attempt to receive after send or if mode is receive
-        char response[MAX_MESSAGE_LENGTH];
-        int received = receive_chat(sockfd, response, sizeof(response));
-        if (received == -1) {
-            log_message(LOG_ERROR, "Connection lost during chat receive.");
-        } else if (received == -2) {
-            log_message(LOG_WARN, "Message blocked due to inappropriate content.");
-        } else {
-            log_message(LOG_INFO, "Received chat response: %s", response);
-            printf("[RECEIVED] %s\n", response);
-        }
-    } else {
-        // Fallback for file/game channels
-        printf("Enter target client ID: ");
-        scanf("%d", &target_id);
-        getchar(); // Consume newline
-
-        printf("Enter message or file path: ");
-        fgets(message, sizeof(message), stdin);
         message[strcspn(message, "\n")] = '\0';
+        }while (strlen(message) == 0);
+        const char* channel = "chat";
+        if (cfg.port == cfg.port_file) channel = "file";
+        else if (cfg.port == cfg.port_game) channel = "game";
 
-        build_frame(channel, my_id, target_id, message, "SEND", buffer);
-        log_message(LOG_INFO, "Sending frame → channel=%s to client %d: %s",
-                    channel, target_id, buffer);
-        send(sockfd, buffer, strlen(buffer), 0);
-
-        int received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-        if (received > 0) {
-            buffer[received] = '\0';
-            ParsedCommand cmd;
-            if (parse_command(buffer, &cmd) == 0) {
-                log_message(LOG_INFO, "Parsed frame → channel=%s src=%d dest=%d status=%s msg=%s",
-                            cmd.channel, cmd.src_id, cmd.dest_id, cmd.status, cmd.message);
-                if (strcmp(cmd.status, "ACK") == 0 || strcmp(cmd.status, "DELIVERY_CONFIRMED") == 0) {
-                    log_message(LOG_INFO, "Server confirmed delivery: %s", cmd.message);
-                } else {
-                    log_message(LOG_INFO, "Server response: %s [%s]", cmd.message, cmd.status);
-                }
-            }
+        if (strcmp(channel, "chat") == 0) {
+            send_chat(sockfd, my_id, target_id, message);
+            //send_chat(sockfd, message);
+        } else {
+            build_frame(channel, my_id, target_id, message, "SEND", buffer);
+            send(sockfd, buffer, strlen(buffer), 0);
         }
     }
+
+    client_running = 0;
 
 #ifdef _WIN32
     closesocket(sockfd);

@@ -44,7 +44,7 @@ void init_chat_buffers() {
 /**
  * @brief Sends a chat message to the client, chunked if necessary.
  */
-void send_chat(int connfd, const char* message) {
+void send_chat(int connfd, int src_id, int dest_id, const char* message){
     int total_len = strlen(message);
     int total_chunks = (total_len + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE;
 
@@ -55,8 +55,8 @@ void send_chat(int connfd, const char* message) {
 
         char frame[MAX_COMMAND_LENGTH];
         int is_final = (i == total_chunks - 1);
-        build_frame("chat", 0, 0, chunk, "CHUNK", frame);  // src/dest filled by dispatcher
-
+        //build_frame("chat", 0, 0, chunk, "CHUNK", frame);  // src/dest filled by dispatcher
+        build_frame("chat", src_id, dest_id, chunk, "CHUNK", frame);
         char extended[MAX_COMMAND_LENGTH];
         snprintf(extended, sizeof(extended), "%s|%d|%d", frame, i, is_final);
         send(connfd, extended, strlen(extended), 0);

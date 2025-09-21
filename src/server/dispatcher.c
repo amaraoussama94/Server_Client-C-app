@@ -21,6 +21,8 @@
  */
 void dispatch_command(const ParsedCommand* cmd) {
     if (!cmd) return;
+    log_message(LOG_DEBUG, "Dispatching → channel=%s src=%d dest=%d status=%s msg=%s",
+            cmd->channel, cmd->src_id, cmd->dest_id, cmd->status, cmd->message);
 
     update_activity(cmd->src_id);
     // Handle system commands like ACKs
@@ -54,7 +56,17 @@ void dispatch_command(const ParsedCommand* cmd) {
 
             char forward[MAX_COMMAND_LENGTH];
             build_frame("chat", cmd->src_id, cmd->dest_id, full_msg, "READY", forward);
-            send(get_socket_by_id(cmd->dest_id), forward, strlen(forward), 0);
+            int dest_fd = get_socket_by_id(cmd->dest_id);
+            if (dest_fd <= 0) {
+                log_message(LOG_ERROR, "Invalid destination ID: %d. Cannot route message.", cmd->dest_id);
+                return;
+            }
+            log_message(LOG_INFO, "Forwarding chat from %d to %d: %s", cmd->src_id, cmd->dest_id, full_msg);  
+            int sent=send(get_socket_by_id(cmd->dest_id), forward, strlen(forward), 0);
+            if (sent <= 0) {
+                log_message(LOG_ERROR, "Failed to send to client %d", cmd->dest_id);
+            }
+
         }
         return;
     }

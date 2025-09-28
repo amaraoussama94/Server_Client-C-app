@@ -1,6 +1,10 @@
 /**
  * @file platform.c
  * @brief Cross-platform compatibility utilities.
+ *       Provides functions for sleep and temporary directory retrieval.
+ * @author Oussama Amara
+ * @version 1.0
+ * @date 2025-08-15
  */
 
 #include "platform.h"

@@ -2,6 +2,9 @@
  * @file platform_thread.c
  * @brief Cross-platform thread abstraction for client handling.
  *        Uses pthreads on Linux/macOS and CreateThread on Windows.
+ * @author Oussama Amara
+ * @version 1.0
+ * @date 2025-08-15
  */
 
 #include "platform_thread.h"

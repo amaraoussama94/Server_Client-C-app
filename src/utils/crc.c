@@ -1,6 +1,9 @@
 /**
  * @file crc.c
  * @brief Implements CRC generation and validation for protocol integrity.
+ * @author Oussama Amara
+ * @version 1.0
+ * @date 2025-08-15
  */
 
 #include "crc.h"

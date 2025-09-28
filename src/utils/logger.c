@@ -1,6 +1,9 @@
 /**
  * @file logger.c
  * @brief Logging system with configurable levels and output targets.
+ * @author Oussama Amara
+ * @version 1.0
+ * @date 2025-08-15
  */
 
 #include "logger.h"

@@ -2,9 +2,10 @@
  * @file dispatcher.c
  * @brief Routes parsed commands to appropriate handlers based on channel and status.
  *        Supports chat, file, game, and system logic with delivery confirmation.
- * @date 2025-09-20
+ *        Delegates file logic to features/file_transfer.c.
+ * @date 2025-09-28
  * @author Oussama
- * @version 2.0
+ * @version 2.1
  */
 
 #include "dispatcher.h"
@@ -12,20 +13,26 @@
 #include "client_registry.h"
 #include "logger.h"
 #include "chat.h"
+#include "file_transfer.h"
+
 #include <string.h>
 #include <unistd.h>
 
 /**
  * @brief Dispatches a parsed command to its appropriate handler.
+ *        Handles chat, file, game, and system channels.
  * @param cmd Pointer to parsed command.
  */
 void dispatch_command(const ParsedCommand* cmd) {
     if (!cmd) return;
     log_message(LOG_DEBUG, "Dispatching → channel=%s src=%d dest=%d status=%s msg=%s",
-            cmd->channel, cmd->src_id, cmd->dest_id, cmd->status, cmd->message);
+                cmd->channel, cmd->src_id, cmd->dest_id, cmd->status, cmd->message);
 
     update_activity(cmd->src_id);
-    // Handle system commands like ACKs
+
+    // ─────────────────────────────────────────────
+    // System-level ACK handling
+    // ─────────────────────────────────────────────
     if (strcmp(cmd->channel, "system") == 0) {
         if (strcmp(cmd->status, "ACK") == 0) {
             int sender_fd = get_socket_by_id(cmd->dest_id);
@@ -38,6 +45,9 @@ void dispatch_command(const ParsedCommand* cmd) {
         return;
     }
 
+    // ─────────────────────────────────────────────
+    // Chat message routing
+    // ─────────────────────────────────────────────
     if (strcmp(cmd->channel, "chat") == 0) {
         buffer_chat_chunk(cmd);
         if (cmd->is_final) {
@@ -61,15 +71,51 @@ void dispatch_command(const ParsedCommand* cmd) {
                 log_message(LOG_ERROR, "Invalid destination ID: %d. Cannot route message.", cmd->dest_id);
                 return;
             }
-            log_message(LOG_INFO, "Forwarding chat from %d to %d: %s", cmd->src_id, cmd->dest_id, full_msg);  
-            int sent=send(get_socket_by_id(cmd->dest_id), forward, strlen(forward), 0);
+
+            log_message(LOG_INFO, "[CHAT] Forwarding from %d to %d: %s", cmd->src_id, cmd->dest_id, full_msg);
+            int sent = send(dest_fd, forward, strlen(forward), 0);
             if (sent <= 0) {
                 log_message(LOG_ERROR, "Failed to send to client %d", cmd->dest_id);
             }
-
         }
         return;
     }
 
-    // file and game logic unchanged...
+    // ─────────────────────────────────────────────
+    // File transfer routing
+    // ─────────────────────────────────────────────
+    if (strcmp(cmd->channel, "file") == 0) {
+        int dest_fd = get_socket_by_id(cmd->dest_id);
+        if (strcmp(cmd->status, "REQUEST") == 0) {
+            if (dest_fd <= 0) {
+                log_message(LOG_ERROR, "[FILE] Target client %d not available", cmd->dest_id);
+                return;
+            }
+
+            char notify[MAX_COMMAND_LENGTH];
+            build_frame("file", 0, cmd->dest_id, cmd->message, "INCOMING", notify);
+            send(dest_fd, notify, strlen(notify), 0);
+            log_message(LOG_INFO, "[FILE] Notified client %d of incoming file '%s' from client %d",
+                        cmd->dest_id, cmd->message, cmd->src_id);
+        }
+        else if (strcmp(cmd->status, "READY") == 0) {
+            int receiver_fd = get_socket_by_id(cmd->src_id);  // src_id is the one who sent READY
+            if (receiver_fd <= 0) {
+                log_message(LOG_ERROR, "[FILE] Destination client %d not available for delivery", cmd->src_id);
+                return;
+            }
+            send_file_to_client(&receiver_fd, cmd->message, cmd->dest_id, cmd->src_id);
+        }
+
+
+        return;
+    }
+
+    // ─────────────────────────────────────────────
+    // Game logic stub
+    // ─────────────────────────────────────────────
+    if (strcmp(cmd->channel, "game") == 0) {
+        log_message(LOG_WARN, "[GAME] Game feature not yet implemented.");
+        return;
+    }
 }

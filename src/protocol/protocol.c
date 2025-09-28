@@ -1,14 +1,14 @@
 /**
  * @file protocol.c
  * @brief Implements command framing and parsing logic.
- *        Builds and decodes command frames .
- *      Format: <CRC>|<OPTION>|<PAYLOAD>|EOC
- *      Logs framing and parsing errors.
- *     Future: Add more robust error handling and validation.
- * @date 2025-09-14
+ *        Builds and decodes structured protocol frames for chat, file, and game features.
+ *        Format: <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>|SEQ|END
+ *        Supports chunked delivery and integrity validation.
+ * @date 2025-09-28
  * @author Oussama Amara
- * @version 0.7
+ * @version 0.8
  */
+
 
 
 #include "protocol.h"

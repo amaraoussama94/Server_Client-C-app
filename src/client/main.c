@@ -6,8 +6,8 @@
  *        Supports chat, file, and game features based on port configuration.
  *        Real-time reception is handled by a background listener thread.
  * @author Oussama Amara
- * @version 1.4
- * @date 2025-09-21
+ * @version 1.5
+ * @date 2025-09-28
  */
 
 #include "client.h"
@@ -130,30 +130,42 @@ int run_client(int argc, char** argv) {
 
     // Main loop: user input
     while (client_running) {
-        char message[MAX_MESSAGE_LENGTH];
         int target_id = -1;
-        // keep looping till client enter  a valid message
-        do{
-            printf("\n[SEND] Enter target client ID: ");
-            fflush(stdout);
-            if (scanf("%d", &target_id) != 1) break;
-            getchar(); // consume newline
+        char message[MAX_MESSAGE_LENGTH];
 
-            printf("[SEND] Enter message: ");
-            fflush(stdout);
-            fgets(message, sizeof(message), stdin);
-        message[strcspn(message, "\n")] = '\0';
-        }while (strlen(message) == 0);
+        printf("\n[SEND] Enter target client ID: ");
+        fflush(stdout);
+        if (scanf("%d", &target_id) != 1) break;
+        getchar(); // consume newline
+
         const char* channel = "chat";
         if (cfg.port == cfg.port_file) channel = "file";
         else if (cfg.port == cfg.port_game) channel = "game";
 
         if (strcmp(channel, "chat") == 0) {
+            printf("[CHAT] Enter message: ");
+            fflush(stdout);
+            fgets(message, sizeof(message), stdin);
+            message[strcspn(message, "\n")] = '\0';
+
+            if (strlen(message) == 0) continue;
             send_chat(sockfd, my_id, target_id, message);
-            //send_chat(sockfd, message);
-        } else {
-            build_frame(channel, my_id, target_id, message, "SEND", buffer);
+
+        } else if (strcmp(channel, "file") == 0) {
+            printf("[FILE] Enter filename to send (from assets/to_send/): ");
+            fflush(stdout);
+            fgets(message, sizeof(message), stdin);
+            message[strcspn(message, "\n")] = '\0';
+
+            if (strlen(message) == 0) continue;
+
+            build_frame("file", my_id, target_id, message, "REQUEST", buffer);
             send(sockfd, buffer, strlen(buffer), 0);
+            log_message(LOG_INFO, "File request sent to client %d for '%s'", target_id, message);
+
+        } else if (strcmp(channel, "game") == 0) {
+            printf("[GAME] Game feature not yet supported.\n");
+            log_message(LOG_WARN, "Game feature is stubbed.");
         }
     }
 

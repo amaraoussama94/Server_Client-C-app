@@ -99,13 +99,15 @@ void dispatch_command(const ParsedCommand* cmd) {
                         cmd->dest_id, cmd->message, cmd->src_id);
         }
         else if (strcmp(cmd->status, "READY") == 0) {
-            int dest_fd = get_socket_by_id(cmd->dest_id);
-            if (dest_fd <= 0) {
-                log_message(LOG_ERROR, "[FILE] Destination client %d not available for delivery", cmd->dest_id);
+            int receiver_fd = get_socket_by_id(cmd->src_id);  // src_id is the one who sent READY
+            if (receiver_fd <= 0) {
+                log_message(LOG_ERROR, "[FILE] Destination client %d not available for delivery", cmd->src_id);
                 return;
             }
-            send_file_to_client(&dest_fd, cmd->message, cmd->src_id, cmd->dest_id);
+            send_file_to_client(&receiver_fd, cmd->message, cmd->dest_id, cmd->src_id);
         }
+
+
         return;
     }
 

@@ -38,13 +38,15 @@ static FileBuffer buffers[MAX_CLIENTS];
 // ─────────────────────────────────────────────────────────────
 
 void send_file_to_client(int* connfd, const char* filename, int src_id, int dest_id) {
-    if (!connfd || !filename || src_id <= 0 || dest_id <= 0) {
-        log_message(LOG_ERROR, "Invalid file transfer parameters.");
+    if (!connfd || !filename || src_id < 0 || dest_id <0) {
+        log_message(LOG_ERROR,"Invalid file transfer parameters: connfd=%p, filename='%s', src_id=%d, dest_id=%d",
+    (void*)connfd, filename ? filename : "(null)", src_id, dest_id);
         return;
     }
 
     char path[256];
-    snprintf(path, sizeof(path), "assets/to_send/%s", filename);
+    //TO do make it absolute path  no reletive
+    snprintf(path, sizeof(path), "../../assets/to_send/%s", filename);
 
     FILE* fp = fopen(path, "rb");
     if (!fp) {
@@ -130,7 +132,7 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);
 
         char path[256];
-        snprintf(path, sizeof(path), "assets/received/from_%d_%s", buf->src_id, buf->filename);
+        snprintf(path, sizeof(path), "../../assets/received/from_%d_%s", buf->src_id, buf->filename);
         FILE* fp = fopen(path, "wb");
         if (fp) {
             fwrite(full, 1, strlen(full), fp);

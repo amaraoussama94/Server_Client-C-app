@@ -1,0 +1,55 @@
+# /**
+#  * @file release-on-merge.yml
+#  * @brief GitHub Actions workflow for tagging and releasing after version bump PR is merged.
+#  *        Reads updated VERSION file, creates semantic tag, and publishes cross-platform binaries.
+#  *        Triggered on push to main after version bump PR merge.
+#  *        Complements build-release.yml to comply with branch protection rules.
+#  * @author Oussama Amara
+#  * @version 1.0
+#  * @date 2025-09-28
+#  */
+
+name: Release on Merge
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag and Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Read version
+      id: versioning
+      run: |
+        VERSION=$(cat VERSION)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create and push tag
+      run: |
+        TAG="SRV_CLE_GEN_${{ steps.versioning.outputs.version }}"
+        git tag -a "$TAG" -m "Auto-generated tag: $TAG"
+        git push origin "$TAG"
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ steps.versioning.outputs.version }}
+        tag_name: SRV_CLE_GEN_${{ steps.versioning.outputs.version }}
+        files: |
+          dist/windows/*.exe
+          dist/linux/*

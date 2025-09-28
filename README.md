@@ -68,7 +68,8 @@ project-root/
 
 ```bash
 ./scripts/run_server.sh assets/server.cfg
-./scripts/run_client.sh assets/client_Chat.cfg
+./scripts/run_client.sh assets/client_chat.cfg  # or client_file.cfg / client_game.cfg
+
 ```
 
 ## 🛠 Features
@@ -84,6 +85,9 @@ project-root/
 | ⚙️ Config Loader | Reads host/port settings from external config files                         |
 | 🌍 Cross-Platform| Compatible with Windows and Unix-like systems                               |
 | 🚀 Scripts       | Bash and PowerShell scripts for build/run automation                        |
+| 🧾 Client Registry | Assigns IDs, tracks activity, handles timeouts and disconnections         |
+| 🧵 Threading      | Unified thread creation and detachment across Windows and POSIX           |
+
 
 ```
 
@@ -95,7 +99,8 @@ This system now supports multi-port routing and feature-specific client connecti
 Each command follows a structured format:
 
 ```Code
-<CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>
+ <CRC>|<CHANNEL>|<SRC_ID>|<DEST_ID>|<MESSAGE>|<STATUS>|SEQ|END
+
 ```
 
 - CRC → Integrity checksum for the MESSAGE field
@@ -150,7 +155,8 @@ Clients connect to the appropriate port based on their mode, ensuring clean sepa
 Clients specify their mode via config or CLI:
 
 ```bash
-./client --mode file --config assets/client_Chat.cfg
+ ./client <config_path>
+
 ```
 Supported modes:
 

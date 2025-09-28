@@ -33,6 +33,10 @@ jobs:
       run: |
         VERSION=$(cat VERSION)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+    - name: Configure Git identity
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
     - name: Create and push tag
       run: |

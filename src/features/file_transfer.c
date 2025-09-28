@@ -4,7 +4,7 @@
  *        Handles sending, receiving, chunk framing, reassembly, and delivery confirmation.
  *        Used by dispatcher and client listener threads.
  * @author Oussama Amara
- * @version 1.2
+ * @version 1.4
  * @date 2025-09-28
  */
 
@@ -39,16 +39,17 @@ static FileBuffer buffers[MAX_CLIENTS];
 // ─────────────────────────────────────────────────────────────
 
 void send_file_to_client(int* connfd, const char* filename, int src_id, int dest_id) {
-    if (!connfd || !filename || src_id < 0 || dest_id <0) {
-        log_message(LOG_ERROR,"Invalid file transfer parameters: connfd=%p, filename='%s', src_id=%d, dest_id=%d",
-    (void*)connfd, filename ? filename : "(null)", src_id, dest_id);
+    if (!connfd || !filename || src_id < 0 || dest_id < 0) {
+        log_message(LOG_ERROR,
+            "Invalid file transfer parameters: connfd=%p, filename='%s', src_id=%d, dest_id=%d",
+            (void*)connfd, filename ? filename : "(null)", src_id, dest_id);
         return;
     }
 
     char path[256];
-    //TO do make it absolute path  no reletive
     snprintf(path, sizeof(path), "../assets/to_send/%s", filename);
     print_working_directory();
+
     FILE* fp = fopen(path, "rb");
     if (!fp) {
         log_message(LOG_ERROR, "File not found: %s", path);
@@ -59,7 +60,7 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
     int seq = 0;
     size_t bytes;
 
-    while ((bytes = fread(chunk, 1, MAX_CHUNK_SIZE, fp)) > 0) {
+    while ((bytes = fread(chunk, 1, MAX_CHUNK_SIZE, fp) ) > 0) {
         chunk[bytes] = '\0';
 
         char frame[MAX_COMMAND_LENGTH];
@@ -92,6 +93,13 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
 // ─────────────────────────────────────────────────────────────
 
 void handle_file_incoming(const ParsedCommand* cmd, int sockfd) {
+    FileBuffer* buf = &buffers[cmd->src_id];
+    buf->active = 1;
+    buf->src_id = cmd->src_id;
+    strncpy(buf->filename, cmd->message, sizeof(buf->filename));
+    buf->final_seq = -1;
+    memset(buf->received, 0, sizeof(buf->received));
+
     log_message(LOG_INFO, "[FILE] Incoming file '%s' from client %d. Sending READY...", cmd->message, cmd->src_id);
 
     char ready[MAX_COMMAND_LENGTH];
@@ -107,11 +115,8 @@ void handle_file_incoming(const ParsedCommand* cmd, int sockfd) {
 void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
     FileBuffer* buf = &buffers[cmd->src_id];
     if (!buf->active) {
-        buf->active = 1;
-        buf->src_id = cmd->src_id;
-        strncpy(buf->filename, cmd->message, sizeof(buf->filename));
-        buf->final_seq = -1;
-        memset(buf->received, 0, sizeof(buf->received));
+        log_message(LOG_WARN, "[FILE] Received chunk from %d but no active transfer. Ignoring.", cmd->src_id);
+        return;
     }
 
     strncpy(buf->chunks[cmd->seq_num], cmd->message, MAX_CHUNK_SIZE);
@@ -119,7 +124,7 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
     buf->received[cmd->seq_num] = 1;
     if (cmd->is_final) buf->final_seq = cmd->seq_num;
 
-    log_message(LOG_INFO, "[FILE] Received chunk #%d from %d for '%s'", cmd->seq_num, cmd->src_id, cmd->message);
+    log_message(LOG_INFO, "[FILE] Received chunk #%d from %d for file '%s'", cmd->seq_num, cmd->src_id, buf->filename);
 
     // Check if all chunks are received
     if (buf->final_seq >= 0) {
@@ -131,9 +136,16 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
         char full[MAX_MESSAGE_SIZE] = "";
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);
-        
+
+        // Extract extension from original filename
+        const char* ext = strrchr(buf->filename, '.');
+        char extension[16] = "";
+        if (ext && strlen(ext) < sizeof(extension)) {
+            strncpy(extension, ext, sizeof(extension) - 1);
+        }
+
         char path[256];
-        snprintf(path, sizeof(path), "../assets/received/from_%d_%s", buf->src_id, buf->filename);
+        snprintf(path, sizeof(path), "../assets/received/from_%d_%s%s", buf->src_id, buf->filename, extension);
         FILE* fp = fopen(path, "wb");
         if (fp) {
             fwrite(full, 1, strlen(full), fp);

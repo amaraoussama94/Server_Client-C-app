@@ -1,15 +1,17 @@
 # /**
-#  * @file release-on-merge.yml
-#  * @brief GitHub Actions workflow for tagging and releasing after version bump PR is merged.
-#  *        Reads updated VERSION file, creates semantic tag, and publishes cross-platform binaries.
-#  *        Triggered on push to main after version bump PR merge.
-#  *        Complements build-release.yml to comply with branch protection rules.
+#  * @file build-release.yml
+#  * @brief Unified GitHub Actions workflow for cross-platform build, version bump via pull request,
+#  *        and automated tagging and release after PR merge.
+#  *        Builds Windows and Linux binaries, packages artifacts, and opens a PR to increment version tag.
+#  *        Tagging and release are triggered on push to main after PR merge.
+#  *        Versioning follows X.Y format, starting at 1.0 and rolling over after 0.9.
+#  *        Complies with branch protection rules by avoiding direct pushes.
 #  * @author Oussama Amara
-#  * @version 1.0
+#  * @version 1.5
 #  * @date 2025-09-28
 #  */
 
-name: Release on Merge
+name: Cross-Platform Build, Version Bump & Release
 
 on:
   push:
@@ -17,43 +19,180 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: write  # Required for creating branches, tags, and releases
 
 jobs:
-  release:
-    name: Tag and Release
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: 🧾 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 🛠 Set up MSYS2 for GCC and Make
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          mingw-w64-x86_64-gcc
+          make
+
+    - name: 🧱 Build Windows binaries
+      run: |
+        make clean
+        make all
+
+    - name: 📦 Package Windows binaries
+      run: |
+        mkdir -p dist/windows
+        cp build/bin/*.exe dist/windows/
+
+    - name: 📤 Upload Windows artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-binaries
+        path: dist/windows/
+
+  build-linux:
+    name: Build on Linux
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: 🧾 Checkout code
       uses: actions/checkout@v3
 
-    - name: Read version
-      id: versioning
+    - name: 🛠 Install build tools
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+
+    - name: 🧱 Build Linux binaries
       run: |
-        VERSION=$(cat VERSION)
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-    - name: Configure Git identity
+        make clean
+        make all
+
+    - name: 📦 Package Linux binaries
+      run: |
+        mkdir -p dist/linux
+        cp build/bin/* dist/linux/
+
+    - name: 📤 Upload Linux artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-binaries
+        path: dist/linux/
+
+  tag-and-release:
+    name: Version Bump PR + Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧾 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 🔐 Configure Git identity
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Create and push tag
+    - name: 🔢 Read and increment version from remote tags
+      id: versioning
       run: |
-        TAG="SRV_CLE_GEN_${{ steps.versioning.outputs.version }}"
-        git tag -a "$TAG" -m "Auto-generated tag: $TAG"
-        git push origin "$TAG"
+        git fetch --tags
 
-    - name: Download all artifacts
+        # Find latest SRV_CLE_GEN_X.Y tag
+        LATEST_TAG=$(git tag | grep '^SRV_CLE_GEN_' | sort -V | tail -n1)
+
+        if [ -z "$LATEST_TAG" ]; then
+          NEW_VERSION="1.0"
+        else
+          BASE_VERSION=${LATEST_TAG#SRV_CLE_GEN_}
+          MAJOR=$(echo $BASE_VERSION | cut -d. -f1)
+          MINOR=$(echo $BASE_VERSION | cut -d. -f2)
+
+          if [ "$MINOR" -lt 9 ]; then
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR"
+          else
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_VERSION="$NEW_MAJOR.0"
+          fi
+        fi
+
+        echo "$NEW_VERSION" > VERSION
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: 🔁 Create Pull Request for version bump
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: version-bump-${{ steps.versioning.outputs.version }}
+        title: "chore: bump version to ${{ steps.versioning.outputs.version }}"
+        body: |
+          # 📝 Task Title
+          Automated version bump and release preparation
+
+          # 📌 Summary
+          This PR updates the `VERSION` file to `${{ steps.versioning.outputs.version }}`.
+          Triggered by successful builds on Windows and Linux.
+
+          # 📂 Related File Changes
+          - VERSION
+
+          # 🧪 Testing
+          - [x] CI builds passed
+          - [x] Artifacts uploaded
+          - [ ] Manual testing not applicable
+
+          # 🧠 Notes for Reviewers
+          Auto-generated by GitHub Actions. No functional changes.
+
+          # ✅ Checklist
+          - [x] Code compiles
+          - [x] No debug prints
+          - [x] VERSION updated
+
+        labels: version-bump, automated
+        assignees: OussamaAmara
+
+    - name: 🧾 Checkout again after merge
+      if: github.ref == 'refs/heads/main'
+      uses: actions/checkout@v3
+
+    - name: 🔢 Read merged version
+      if: github.ref == 'refs/heads/main'
+      id: merged-version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: 🏷 Create and push tag
+      if: github.ref == 'refs/heads/main'
+      run: |
+        TAG="SRV_CLE_GEN_${{ steps.merged-version.outputs.version }}"
+        if git rev-parse "$TAG" >/dev/null 2>&1; then
+          echo "Tag $TAG already exists. Skipping."
+        else
+          git tag -a "$TAG" -m "Auto-generated tag: $TAG"
+          git push origin "$TAG"
+        fi
+
+    - name: 📥 Download all artifacts
+      if: github.ref == 'refs/heads/main'
       uses: actions/download-artifact@v4
       with:
         path: dist/
 
-    - name: Create GitHub Release
+    - name: 🚀 Create GitHub Release
+      if: github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
-        name: Release ${{ steps.versioning.outputs.version }}
-        tag_name: SRV_CLE_GEN_${{ steps.versioning.outputs.version }}
+        name: Release ${{ steps.merged-version.outputs.version }}
+        tag_name: SRV_CLE_GEN_${{ steps.merged-version.outputs.version }}
         files: |
           dist/windows/*.exe
           dist/linux/*

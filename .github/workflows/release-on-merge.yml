@@ -129,7 +129,7 @@ jobs:
     - name: 🔁 Create Pull Request for version bump
       uses: peter-evans/create-pull-request@v5
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.PAT_TOKEN }}
         branch: version-bump-${{ steps.versioning.outputs.version }}
         title: "chore: bump version to ${{ steps.versioning.outputs.version }}"
         body: |

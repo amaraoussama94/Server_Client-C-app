@@ -11,6 +11,7 @@
 #include "file_transfer.h"
 #include "protocol.h"
 #include "logger.h"
+#include "platform.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -46,8 +47,8 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
 
     char path[256];
     //TO do make it absolute path  no reletive
-    snprintf(path, sizeof(path), "../../assets/to_send/%s", filename);
-
+    snprintf(path, sizeof(path), "../assets/to_send/%s", filename);
+    print_working_directory();
     FILE* fp = fopen(path, "rb");
     if (!fp) {
         log_message(LOG_ERROR, "File not found: %s", path);
@@ -130,9 +131,9 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
         char full[MAX_MESSAGE_SIZE] = "";
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);
-
+        
         char path[256];
-        snprintf(path, sizeof(path), "../../assets/received/from_%d_%s", buf->src_id, buf->filename);
+        snprintf(path, sizeof(path), "../assets/received/from_%d_%s", buf->src_id, buf->filename);
         FILE* fp = fopen(path, "wb");
         if (fp) {
             fwrite(full, 1, strlen(full), fp);

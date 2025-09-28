@@ -27,4 +27,9 @@ void sleep_ms(int milliseconds);
  */
 const char* get_temp_dir();
 
+/**
+ * @brief Prints the current working directory to the log.
+ *        Useful for debugging relative path issues across platforms.
+ */
+void print_working_directory();
 #endif // PLATFORM_H

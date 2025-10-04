@@ -5,8 +5,8 @@
  *        Supports chat, file, game (stub), and system frames in real time.
  *        Delegates file logic to features/file_transfer.c.
  * @author Oussama Amara
- * @version 1.3
- * @date 2025-09-28
+ * @version 1.4
+ * @date 2025-10-04
  */
 
 #include "client_listener.h"
@@ -17,8 +17,30 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 extern volatile int client_running;
+extern FileBuffer buffers[MAX_CLIENTS];
+#define TIMEOUT_SECONDS 10
+/**
+ * @brief Checks for stalled file transfers and aborts if timeout exceeded.
+ * @param sockfd Socket descriptor to send TIMEOUT frames.
+ */
+static void check_file_transfer_timeouts(int sockfd) {
+    time_t now = time(NULL);
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        FileBuffer* buf = &buffers[i];
+        if (buf->active && buf->final_seq >= 0 && now - buf->last_received > TIMEOUT_SECONDS) {
+            log_message(LOG_WARN, "[FILE] Timeout waiting for chunk from client %d. Aborting transfer of '%s'.", buf->src_id, buf->filename);
+
+            char err[MAX_COMMAND_LENGTH];
+            build_frame("system", 0, buf->src_id, buf->filename, "TIMEOUT", err);
+            send(sockfd, err, strlen(err), 0);
+
+            buf->active = 0;
+        }
+    }
+}
 
 /**
  * @brief Thread function that continuously listens for incoming frames.
@@ -60,7 +82,8 @@ THREAD_FUNC client_listener(void* arg) {
             if (strcmp(cmd.status, "INCOMING") == 0) {
                 handle_file_incoming(&cmd, sockfd);  // Wake-up logic
             } else if (strcmp(cmd.status, "CHUNK") == 0) {
-                handle_file_chunk(&cmd, sockfd);     // Buffer + reassemble
+                check_file_transfer_timeouts(sockfd); // ⏱️ Timeout check
+                handle_file_chunk(&cmd, sockfd);      // Buffer + reassemble
             }
         }
 

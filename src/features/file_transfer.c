@@ -15,25 +15,14 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#define MAX_CHUNKS 64
-#define MAX_CHUNK_SIZE 256
-#define MAX_CLIENTS 64
-#define MAX_MESSAGE_SIZE 4096
+#include <time.h> 
 
 // Client-side reassembly buffer
-typedef struct {
-    int active;
-    int src_id;
-    char filename[256];
-    char chunks[MAX_CHUNKS][MAX_CHUNK_SIZE + 1];
-    int received[MAX_CHUNKS];
-    int final_seq;
-} FileBuffer;
-
-static FileBuffer buffers[MAX_CLIENTS];
-
-
+/**
+ * @struct FileBuffer
+ * @brief Represents the state and data of a file being transferred.
+ */
+ FileBuffer buffers[MAX_CLIENTS];
 // ─────────────────────────────────────────────────────────────
 // SERVER-SIDE: Send file in chunked frames
 // ─────────────────────────────────────────────────────────────
@@ -44,6 +33,13 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
             "Invalid file transfer parameters: connfd=%p, filename='%s', src_id=%d, dest_id=%d",
             (void*)connfd, filename ? filename : "(null)", src_id, dest_id);
         return;
+    }
+    const char* ext = strrchr(filename, '.');
+    if (ext) {
+        if (strcmp(ext, ".exe") == 0 || strcmp(ext, ".bat") == 0 || strcmp(ext, ".cmd") == 0) {
+            log_message(LOG_ERROR, "[FILE] Blocked file type '%s' for security reasons.", ext);
+            return;
+        }
     }
 
     char path[256];
@@ -137,7 +133,7 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
             if (!buf->received[i]) return;
 
         log_message(LOG_INFO, "[FILE] All chunks received. Reassembling '%s'...", buf->filename);
-
+        buf->last_received = time(NULL);
         char full[MAX_MESSAGE_SIZE] = "";
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);

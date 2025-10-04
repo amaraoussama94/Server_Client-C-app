@@ -55,7 +55,12 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
         log_message(LOG_ERROR, "File not found: %s", path);
         return;
     }
+    // Get file size
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    rewind(fp);  // Reset for reading
 
+    log_message(LOG_INFO, "[FILE] Preparing to send '%s' (%ld bytes) to client %d", filename, file_size, dest_id);
     char chunk[MAX_CHUNK_SIZE + 1];
     int seq = 0;
     size_t bytes;

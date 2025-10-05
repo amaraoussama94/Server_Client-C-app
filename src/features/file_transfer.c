@@ -15,25 +15,14 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#define MAX_CHUNKS 64
-#define MAX_CHUNK_SIZE 256
-#define MAX_CLIENTS 64
-#define MAX_MESSAGE_SIZE 4096
+#include <time.h> 
 
 // Client-side reassembly buffer
-typedef struct {
-    int active;
-    int src_id;
-    char filename[256];
-    char chunks[MAX_CHUNKS][MAX_CHUNK_SIZE + 1];
-    int received[MAX_CHUNKS];
-    int final_seq;
-} FileBuffer;
-
-static FileBuffer buffers[MAX_CLIENTS];
-
-
+/**
+ * @struct FileBuffer
+ * @brief Represents the state and data of a file being transferred.
+ */
+ FileBuffer buffers[MAX_CLIENTS];
 // ─────────────────────────────────────────────────────────────
 // SERVER-SIDE: Send file in chunked frames
 // ─────────────────────────────────────────────────────────────
@@ -45,6 +34,13 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
             (void*)connfd, filename ? filename : "(null)", src_id, dest_id);
         return;
     }
+    const char* ext = strrchr(filename, '.');
+    if (ext) {
+        if (strcmp(ext, ".exe") == 0 || strcmp(ext, ".bat") == 0 || strcmp(ext, ".cmd") == 0) {
+            log_message(LOG_ERROR, "[FILE] Blocked file type '%s' for security reasons.", ext);
+            return;
+        }
+    }
 
     char path[256];
     snprintf(path, sizeof(path), "../assets/to_send/%s", filename);
@@ -55,7 +51,13 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
         log_message(LOG_ERROR, "File not found: %s", path);
         return;
     }
+    // Get file size
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    rewind(fp);  // Reset for reading
+    int total_chunks = (file_size + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE;
 
+    log_message(LOG_INFO, "[FILE] Preparing to send '%s' (%ld bytes) to client %d", filename, file_size, dest_id);
     char chunk[MAX_CHUNK_SIZE + 1];
     int seq = 0;
     size_t bytes;
@@ -75,6 +77,9 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
 
         log_message(LOG_INFO, "[FILE] Sent chunk #%d to client %d", seq, dest_id);
         seq++;
+        log_message(LOG_INFO, "[FILE] Progress: Sent %d/%d chunks (%.2f%%) to client %d",
+            seq + 1, total_chunks, (100.0 * (seq + 1)) / total_chunks, dest_id);
+
     }
 
     fclose(fp);
@@ -132,7 +137,7 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
             if (!buf->received[i]) return;
 
         log_message(LOG_INFO, "[FILE] All chunks received. Reassembling '%s'...", buf->filename);
-
+        buf->last_received = time(NULL);
         char full[MAX_MESSAGE_SIZE] = "";
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);

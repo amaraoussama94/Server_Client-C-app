@@ -25,6 +25,58 @@
 extern "C" {
 #endif
 
+
+/*
+ * Constants for file transfer and client-server communication.
+ *
+ * MAX_CHUNKS         - Maximum number of chunks a file can be divided into.
+ * MAX_CHUNK_SIZE     - Maximum size (in bytes) of each file chunk.
+ * MAX_CLIENTS        - Maximum number of clients that can connect simultaneously.
+ * MAX_MESSAGE_SIZE   - Maximum size (in bytes) of a message exchanged between client and server.
+ */
+#define MAX_CHUNKS 64
+#define MAX_CHUNK_SIZE 256
+#define MAX_CLIENTS 64
+#define MAX_MESSAGE_SIZE 4096
+/**
+ * @struct FileBuffer
+ * @brief Represents the state and data of a file being transferred.
+ *
+ * This structure is used to manage the reception of a file in chunks,
+ * keeping track of which chunks have been received, the source of the file,
+ * and associated metadata.
+ *
+ * @var FileBuffer::active
+ * Indicates whether the file buffer is currently in use (1 for active, 0 for inactive).
+ *
+ * @var FileBuffer::src_id
+ * Identifier for the source (e.g., client or server) sending the file.
+ *
+ * @var FileBuffer::filename
+ * Name of the file being transferred (null-terminated string, max 255 characters).
+ *
+ * @var FileBuffer::chunks
+ * 2D array storing the received file chunks. Each chunk can hold up to MAX_CHUNK_SIZE bytes plus a null terminator.
+ *
+ * @var FileBuffer::received
+ * Array indicating which chunks have been received (1 for received, 0 for not received).
+ *
+ * @var FileBuffer::final_seq
+ * Sequence number of the last chunk in the file transfer.
+ *
+ * @var FileBuffer::last_received
+ * Timestamp of the last received chunk (time_t).
+ */
+typedef struct {
+    int active;
+    int src_id;
+    char filename[256];
+    char chunks[MAX_CHUNKS][MAX_CHUNK_SIZE + 1];
+    int received[MAX_CHUNKS];
+    int final_seq;
+    time_t last_received;
+} FileBuffer;
+
 /**
  * @brief Sends a file to the connected client in chunked protocol frames.
  *        Each chunk includes CRC, sequence number, and END flag.

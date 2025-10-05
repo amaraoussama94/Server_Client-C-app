@@ -491,3 +491,69 @@ The listener thread parses all incoming frames using parse_command() and logs or
 ------------------------------------------
 |WAIT	   |Waiting for another client     |
 ------------------------------------------
+## 📁 File Transfer Update — Retry, Timeout & Progress Tracking
+
+### 🧠 Overview
+
+The file transfer module now includes robust delivery guarantees through retry logic, timeout detection, and real-time progress tracking. This ensures reliable transmission even under unstable network conditions.
+
+---
+
+### 🔁 Retry Logic
+
+- Each chunk is tracked with:
+  - `retry_count[]`: Number of retry attempts
+  - `last_retry[]`: Timestamp of last retry
+
+- If a chunk is missing:
+  - A `RETRY|<seq>` frame is sent
+  - Retries are throttled using `RETRY_INTERVAL`
+  - Retries are capped using `MAX_RETRIES`
+
+- If retry limit is exceeded:
+  - Transfer is aborted
+  - A warning is logged
+
+---
+
+### ⏱️ Timeout Detection
+
+- `last_received` timestamp is updated on each valid chunk
+- If no chunk is received within `TIMEOUT_SECONDS`, a `TIMEOUT` frame is sent
+- Transfer is aborted and logged
+
+---
+
+### 📊 Progress Tracking
+
+#### Sender Side (`send_file_to_client`)
+- Logs percentage after each chunk:
+
+```text
+[FILE] Sent chunk #3 (25.00%)
+```
+
+#### Receiver Side (`handle_file_chunk`)
+- Logs percentage of received chunks:
+
+```text
+[FILE] Receiving 'image.png': 75.00% (3/4)
+```
+
+---
+
+### 🧩 Frame Status Extensions
+
+```text
+|Status     |Description                          |
+|-----------|--------------------------------------|
+|CHUNK      |Chunked file data                    |
+|REQUEST    |Client requests a file               |
+|INCOMING   |Server notifies receiver of file     |
+|READY      |Receiver is ready to accept chunks   |
+|DONE       |Sender finished sending              |
+|ACK        |Receiver confirms successful save    |
+|ERR        |Receiver failed to save              |
+|RETRY      |Receiver requests missing chunk      |
+|TIMEOUT    |Receiver timed out waiting for chunk |
+```

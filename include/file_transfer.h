@@ -1,111 +1,69 @@
 /**
  * @file file_transfer.h
  * @brief Unified file transfer interface for client and server.
- *        Handles sending, receiving, chunk framing, reassembly, and delivery confirmation.
- *        Used by both dispatcher and client listener threads.
+ *        Supports chunked delivery, reassembly, retry logic, timeout detection,
+ *        and progress tracking. Used by dispatcher and listener threads.
  * @author Oussama Amara
- * @version 1.2
- * @date 2025-09-28
+ * @version 1.5
+ * @date 2025-10-05
  */
 
 #ifndef FILE_TRANSFER_H
 #define FILE_TRANSFER_H
 
 #include "protocol.h"
-#ifdef _WIN32
-  #include <winsock2.h>
-  #pragma comment(lib, "ws2_32.lib")
-#else
-  #include <sys/socket.h>
-  #include <netinet/in.h>
-  #include <arpa/inet.h>
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-/*
- * Constants for file transfer and client-server communication.
- *
- * MAX_CHUNKS         - Maximum number of chunks a file can be divided into.
- * MAX_CHUNK_SIZE     - Maximum size (in bytes) of each file chunk.
- * MAX_CLIENTS        - Maximum number of clients that can connect simultaneously.
- * MAX_MESSAGE_SIZE   - Maximum size (in bytes) of a message exchanged between client and server.
- */
-#define MAX_CHUNKS 64
 #define MAX_CHUNK_SIZE 256
+#define MAX_CHUNKS 64
 #define MAX_CLIENTS 64
 #define MAX_MESSAGE_SIZE 4096
+#define MAX_RETRIES 5
+#define RETRY_INTERVAL 3 // seconds
+
 /**
  * @struct FileBuffer
  * @brief Represents the state and data of a file being transferred.
- *
- * This structure is used to manage the reception of a file in chunks,
- * keeping track of which chunks have been received, the source of the file,
- * and associated metadata.
- *
- * @var FileBuffer::active
- * Indicates whether the file buffer is currently in use (1 for active, 0 for inactive).
- *
- * @var FileBuffer::src_id
- * Identifier for the source (e.g., client or server) sending the file.
- *
- * @var FileBuffer::filename
- * Name of the file being transferred (null-terminated string, max 255 characters).
- *
- * @var FileBuffer::chunks
- * 2D array storing the received file chunks. Each chunk can hold up to MAX_CHUNK_SIZE bytes plus a null terminator.
- *
- * @var FileBuffer::received
- * Array indicating which chunks have been received (1 for received, 0 for not received).
- *
- * @var FileBuffer::final_seq
- * Sequence number of the last chunk in the file transfer.
- *
- * @var FileBuffer::last_received
- * Timestamp of the last received chunk (time_t).
+ *        Used for client-side reassembly and retry tracking.
  */
 typedef struct {
-    int active;
-    int src_id;
-    char filename[256];
-    char chunks[MAX_CHUNKS][MAX_CHUNK_SIZE + 1];
-    int received[MAX_CHUNKS];
-    int final_seq;
-    time_t last_received;
+    int active;                        ///< 1 if transfer is active
+    int src_id;                        ///< Sender ID
+    char filename[128];               ///< Name of file being transferred
+    char chunks[MAX_CHUNKS][MAX_CHUNK_SIZE + 1]; ///< Chunk data
+    int received[MAX_CHUNKS];         ///< Flags for received chunks
+    int final_seq;                    ///< Final chunk sequence number
+    time_t last_received;             ///< Timestamp of last received chunk
+    int retry_count[MAX_CHUNKS];      ///< Retry attempts per chunk
+    time_t last_retry[MAX_CHUNKS];    ///< Last retry timestamp per chunk
 } FileBuffer;
 
+extern FileBuffer buffers[MAX_CLIENTS]; ///< Global buffer array for client-side reassembly
+
 /**
- * @brief Sends a file to the connected client in chunked protocol frames.
- *        Each chunk includes CRC, sequence number, and END flag.
- *        Finalizes with a DONE frame.
- * @param connfd Pointer to connected socket descriptor.
- * @param filename Name of the file to send (relative to assets/to_send/).
- * @param src_id Sender client ID.
- * @param dest_id Receiver client ID.
+ * @brief Sends a file to a client in chunked frames.
+ *        Tracks progress and sends DONE frame on completion.
+ * @param connfd Pointer to socket descriptor.
+ * @param filename Name of file to send (from assets/to_send/).
+ * @param src_id Sender ID.
+ * @param dest_id Receiver ID.
  */
 void send_file_to_client(int* connfd, const char* filename, int src_id, int dest_id);
 
 /**
- * @brief Handles incoming file transfer notification (INCOMING).
- *        Sends a READY frame to the server to initiate chunk delivery.
- * @param cmd Parsed INCOMING command.
- * @param sockfd Connected socket descriptor.
+ * @brief Handles INCOMING frame and prepares client buffer.
+ *        Sends READY frame to sender.
+ * @param cmd Parsed command containing file metadata.
+ * @param sockfd Socket descriptor to respond.
  */
 void handle_file_incoming(const ParsedCommand* cmd, int sockfd);
 
 /**
- * @brief Buffers incoming file chunks and reassembles the file.
- *        Saves the file to assets/received/ and sends ACK or ERR to sender.
- * @param cmd Parsed CHUNK command.
- * @param sockfd Connected socket descriptor.
+ * @brief Buffers incoming file chunks, tracks progress, and reassembles when complete.
+ *        Sends ACK or ERR frame based on save success.
+ *        Implements retry logic for missing chunks.
+ * @param cmd Parsed command containing chunk data.
+ * @param sockfd Socket descriptor to respond.
  */
 void handle_file_chunk(const ParsedCommand* cmd, int sockfd);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // FILE_TRANSFER_H

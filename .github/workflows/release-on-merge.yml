@@ -1,14 +1,20 @@
 # /**
 #  * @file build-release.yml
 #  * @brief Unified GitHub Actions workflow for cross-platform build, version bump via pull request,
-#  *        and automated tagging and release after PR merge.
-#  *        Builds Windows and Linux binaries, packages artifacts, and opens a PR to increment version tag.
-#  *        Tagging and release are triggered on push to main after PR merge.
-#  *        Versioning follows X.Y format, starting at 1.0 and rolling over after 0.9.
-#  *        Complies with branch protection rules by avoiding direct pushes.
+#  *        automated tagging and release, and binary sync to external test repository.
+#  *
+#  *        - Builds Windows and Linux binaries using Make
+#  *        - Packages and uploads artifacts
+#  *        - Opens a pull request to bump version (X.Y format, starting at 1.0)
+#  *        - Creates annotated tag and GitHub release after PR merge
+#  *        - Pushes built binaries to `client-server-test-suite/bins/<version>/`
+#  *
+#  *        Complies with branch protection rules by avoiding direct pushes to main.
+#  *        Designed for modular, contributor-friendly client-server architecture validation.
+#  *
 #  * @author Oussama Amara
-#  * @version 1.5
-#  * @date 2025-09-28
+#  * @version 1.6
+#  * @date 2025-10-05
 #  */
 
 name: Cross-Platform Build, Version Bump & Release
@@ -104,7 +110,6 @@ jobs:
       run: |
         git fetch --tags
 
-        # Find latest SRV_CLE_GEN_X.Y tag
         LATEST_TAG=$(git tag | grep '^SRV_CLE_GEN_' | sort -V | tail -n1)
 
         if [ -z "$LATEST_TAG" ]; then
@@ -196,3 +201,23 @@ jobs:
         files: |
           dist/windows/*.exe
           dist/linux/*
+
+    - name: 🔄 Sync binaries to test repo
+      if: github.ref == 'refs/heads/main'
+      run: |
+        TEST_REPO="https://oussama:${{ secrets.PAT_TOKEN }}@github.com/amaraoussama94/client-server-test-suite.git"
+        VERSION=${{ steps.merged-version.outputs.version }}
+
+        git clone "$TEST_REPO" test-repo
+        mkdir -p test-repo/bins/$VERSION/windows
+        mkdir -p test-repo/bins/$VERSION/linux
+
+        cp dist/windows/*.exe test-repo/bins/$VERSION/windows/
+        cp dist/linux/* test-repo/bins/$VERSION/linux/
+
+        cd test-repo
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "test: add binaries for version $VERSION"
+        git push origin main

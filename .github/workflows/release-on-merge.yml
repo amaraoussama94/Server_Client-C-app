@@ -4,7 +4,7 @@
 #  *        automated tagging and release, and binary sync to external test repository.
 #  *
 #  *        - Builds Windows and Linux binaries using Make (output: build/bin/)
-#  *        - Packages and uploads artifacts
+#  *        - Packages and uploads artifacts as windows-binaries and linux-binaries
 #  *        - Opens a pull request to bump version (X.Y format, starting at 1.0)
 #  *        - Creates annotated tag and GitHub release after PR merge
 #  *        - Pushes built binaries to `client-server-test-suite/bins/<version>/windows` and `linux`
@@ -55,14 +55,14 @@ jobs:
 
     - name: 📦 Package Windows binaries
       run: |
-        mkdir -p dist/windows
-        cp build/bin/*.exe dist/windows/
+        mkdir -p dist/windows-binaries
+        cp build/bin/*.exe dist/windows-binaries/
 
     - name: 📤 Upload Windows artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-binaries
-        path: dist/windows/
+        path: dist/windows-binaries/
 
   build-linux:
     name: Build on Linux
@@ -82,14 +82,14 @@ jobs:
 
     - name: 📦 Package Linux binaries
       run: |
-        mkdir -p dist/linux
-        cp build/bin/* dist/linux/
+        mkdir -p dist/linux-binaries
+        cp build/bin/* dist/linux-binaries/
 
     - name: 📤 Upload Linux artifacts
       uses: actions/upload-artifact@v4
       with:
         name: linux-binaries
-        path: dist/linux/
+        path: dist/linux-binaries/
 
   tag-and-release:
     name: Version Bump PR + Release
@@ -198,8 +198,8 @@ jobs:
         name: Release ${{ steps.merged-version.outputs.version }}
         tag_name: SRV_CLE_GEN_${{ steps.merged-version.outputs.version }}
         files: |
-          dist/windows/*.exe
-          dist/linux/*
+          dist/windows-binaries/*.exe
+          dist/linux-binaries/*
 
     - name: 🔄 Sync binaries to test repo
       if: github.ref == 'refs/heads/main'
@@ -211,14 +211,14 @@ jobs:
         mkdir -p test-repo/bins/$VERSION/windows
         mkdir -p test-repo/bins/$VERSION/linux
 
-        if compgen -G "dist/windows/*.exe" > /dev/null; then
-          cp dist/windows/*.exe test-repo/bins/$VERSION/windows/
+        if compgen -G "dist/windows-binaries/*.exe" > /dev/null; then
+          cp dist/windows-binaries/*.exe test-repo/bins/$VERSION/windows/
         else
           echo "⚠️ No Windows binaries found. Skipping Windows sync."
         fi
 
-        if compgen -G "dist/linux/*" > /dev/null; then
-          cp dist/linux/* test-repo/bins/$VERSION/linux/
+        if compgen -G "dist/linux-binaries/*" > /dev/null; then
+          cp dist/linux-binaries/* test-repo/bins/$VERSION/linux/
         else
           echo "⚠️ No Linux binaries found. Skipping Linux sync."
         fi

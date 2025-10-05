@@ -1,91 +1,73 @@
 # 🛠️ Project To-Do List
 
-This roadmap outlines the next development milestones for the modular client-server system. It includes file transfer completion, real-world testing, GUI development, and future enhancements.
+This roadmap outlines the next development milestones for the modular client-server system, evolving into a cross-platform collaboration app inspired by tools like Microsoft Teams. It includes file transfer completion, real-world testing, GUI development, authentication, and a built-in game module.
 
 ---
 
-## ✅ 1. Complete File Transfer Logic
+## 🖼️ 1. Build Cross-Platform GUI (Desktop + Web)
 
-**Goal:** Enable reliable, chunked file transmission between clients.
-
-### Tasks
-- [ ] Implement `send_file_to_client()` and `receive_file_from_client()` in `file_transfer.c`
-- [ ] Support chunk framing: `<CRC>|file|SRC_ID|DEST_ID|CHUNK|STATUS`
-- [ ] Add file size metadata and end-of-transfer marker
-- [ ] Validate CRC per chunk and confirm delivery with `ACK`
-- [ ] Add timeout or retry logic for interrupted transfers
-
-### Ideas
-- Use `fread()` and `fwrite()` with configurable buffer size (e.g., 4 KB)
-- Support file type filtering (e.g., block `.exe`, `.bat`)
-- Add progress logging: `Sent 3/10 chunks...`
-
----
-
-## 🌐 2. Test on Real Network (Multi-PC)
-
-**Goal:** Validate protocol behavior across real devices and networks.
+**Goal:** Create a Teams-style interface with chat, file, and game tabs.
 
 ### Tasks
-- [ ] Deploy server on one machine (Linux or Windows)
-- [ ] Connect clients from separate machines via LAN or Wi-Fi
-- [ ] Test NAT traversal if using public IPs
-- [ ] Monitor latency, dropped frames, and timeout behavior
-
-### Ideas
-- Use Wireshark to inspect TCP frames and CRC integrity
-- Simulate packet loss using `tc` or `netem` on Linux
-- Log connection metadata: IP, port, latency
-
----
-
-## 🖼️ 3. Create Qt/Python GUI Interface
-
-**Goal:** Build a basic messenger-style app with chat/file/game tabs.
-
-### Tasks
-- [ ] Design UI in Qt Designer or PyQt6
-- [ ] Connect to backend via Python sockets
-- [ ] Display active clients in a sidebar
-- [ ] Add chat input, file picker, and game command buttons
+- [ ] Design UI in Qt (C++ or PyQt6) for desktop
+- [ ] Build web client using React + WebSocket bridge
+- [ ] Display active clients in sidebar
+- [ ] Add chat input, file picker, and game buttons
 - [ ] Parse and render incoming frames in real time
 
-### Ideas
-- Use `QThread` for background socket listening
-- Add emoji support and message timestamps
-- Show delivery status (e.g., ✅ Delivered, ❌ Blocked)
+---
+
+## 🎮 2. Add Game Module (Ping Challenge)
+
+**Goal:** Use the `game` channel to implement a simple ping-based mini-game.
+
+### Tasks
+- [ ] Define game protocol: `PING`, `PONG`, `SCORE`, `WIN`
+- [ ] Add `handle_game_command()` in `game.c`
+- [ ] Display game state in GUI tab
+- [ ] Track latency and response time per player
 
 ---
 
-## 💡 4. Other Ideas to Consider
+## 🔐 3. Add Authentication Layer
 
-### 🔐 Authentication Layer
-- Username/password handshake
-- Token-based session validation
-- Optional encryption (TLS or custom XOR)
+**Goal:** Secure client identity and enable personalized sessions.
 
-### 🤖 AI Chatbot Client
-- One client ID could be a bot that responds to messages
-- Use simple NLP or integrate with external API
+### Tasks
+- [ ] Implement username/password handshake
+- [ ] Add token-based session validation
+- [ ] Store credentials securely (e.g., hashed in SQLite)
+- [ ] Add login screen to GUI
 
-### 📦 Dockerize Server
-- Create `Dockerfile` for easy deployment
-- Expose ports via `docker-compose.yml`
+---
 
-### 📊 Metrics Dashboard
-- Track active clients, messages sent, file volume
-- Export logs to JSON or SQLite
+## 📦 4. Dockerize and Deploy
 
-### 🧪 Test Harness
-- Simulate 10+ clients sending random messages
-- Validate CRC, delivery, and timeout behavior
+**Goal:** Make the app easy to run locally and in CI.
+
+### Tasks
+- [ ] Create `Dockerfile` for server and client
+- [ ] Define `docker-compose.yml` for multi-container setup
+- [ ] Expose ports and volumes for testing
+- [ ] Add CI workflow to run integration tests
+
+---
+
+## 📊 5. Metrics Dashboard
+
+**Goal:** Track usage, performance, and protocol health.
+
+### Tasks
+- [ ] Log active clients, messages sent, file volume
+- [ ] Export logs to JSON or SQLite
+- [ ] Visualize metrics in GUI or web dashboard
 
 ---
 
 ## 📌 Next Steps
 
-- Finalize file transfer logic and test chunking
-- Begin GUI prototyping with Qt/PyQt
-- Prepare multi-device test environment
-- Modularize feature logic into `chat.c`, `file.c`, `game.c`
-
+- [ ] Begin GUI prototyping with Qt and React
+- [ ] Prepare multi-device test environment
+- [ ] Modularize feature logic into `chat.c`, `file.c`, `game.c`, `auth.c`
+- [ ] Define game protocol and ping challenge rules
+- [ ] Add login screen and session handling

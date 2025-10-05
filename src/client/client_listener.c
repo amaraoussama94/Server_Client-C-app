@@ -40,6 +40,16 @@ static void check_file_transfer_timeouts(int sockfd) {
             buf->active = 0;
         }
     }
+    for (int i = 0; i <= buf->final_seq; ++i) {
+    if (!buf->received[i]) {
+        char retry[MAX_COMMAND_LENGTH];
+        snprintf(retry, sizeof(retry), "RETRY|%d", i);
+        build_frame("file", 0, buf->src_id, retry, "RETRY", retry);
+        send(sockfd, retry, strlen(retry), 0);
+        log_message(LOG_INFO, "[FILE] Requested retry for missing chunk #%d from client %d", i, buf->src_id);
+    }
+}
+
 }
 
 /**

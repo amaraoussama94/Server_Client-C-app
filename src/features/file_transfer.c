@@ -55,6 +55,7 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
     fseek(fp, 0, SEEK_END);
     long file_size = ftell(fp);
     rewind(fp);  // Reset for reading
+    int total_chunks = (file_size + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE;
 
     log_message(LOG_INFO, "[FILE] Preparing to send '%s' (%ld bytes) to client %d", filename, file_size, dest_id);
     char chunk[MAX_CHUNK_SIZE + 1];
@@ -76,6 +77,9 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
 
         log_message(LOG_INFO, "[FILE] Sent chunk #%d to client %d", seq, dest_id);
         seq++;
+        log_message(LOG_INFO, "[FILE] Progress: Sent %d/%d chunks (%.2f%%) to client %d",
+            seq + 1, total_chunks, (100.0 * (seq + 1)) / total_chunks, dest_id);
+
     }
 
     fclose(fp);

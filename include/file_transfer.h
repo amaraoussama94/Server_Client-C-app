@@ -12,7 +12,14 @@
 #define FILE_TRANSFER_H
 
 #include "protocol.h"
-
+#ifdef _WIN32
+  #include <winsock2.h>
+  #pragma comment(lib, "ws2_32.lib")
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+#endif
 #define MAX_CHUNK_SIZE 256
 #define MAX_CHUNKS 64
 #define MAX_CLIENTS 64

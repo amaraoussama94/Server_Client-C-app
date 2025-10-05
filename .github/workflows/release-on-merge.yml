@@ -3,17 +3,17 @@
 #  * @brief Unified GitHub Actions workflow for cross-platform build, version bump via pull request,
 #  *        automated tagging and release, and binary sync to external test repository.
 #  *
-#  *        - Builds Windows and Linux binaries using Make
+#  *        - Builds Windows and Linux binaries using Make (output: build/bin/)
 #  *        - Packages and uploads artifacts
 #  *        - Opens a pull request to bump version (X.Y format, starting at 1.0)
 #  *        - Creates annotated tag and GitHub release after PR merge
-#  *        - Pushes built binaries to `client-server-test-suite/bins/<version>/`
+#  *        - Pushes built binaries to `client-server-test-suite/bins/<version>/windows` and `linux`
 #  *
 #  *        Complies with branch protection rules by avoiding direct pushes to main.
 #  *        Designed for modular, contributor-friendly client-server architecture validation.
 #  *
 #  * @author Oussama Amara
-#  * @version 1.6
+#  * @version 1.7
 #  * @date 2025-10-05
 #  */
 
@@ -25,7 +25,7 @@ on:
       - main
 
 permissions:
-  contents: write  # Required for creating branches, tags, and releases
+  contents: write
 
 jobs:
   build-windows:
@@ -109,7 +109,6 @@ jobs:
       id: versioning
       run: |
         git fetch --tags
-
         LATEST_TAG=$(git tag | grep '^SRV_CLE_GEN_' | sort -V | tail -n1)
 
         if [ -z "$LATEST_TAG" ]; then
@@ -212,8 +211,17 @@ jobs:
         mkdir -p test-repo/bins/$VERSION/windows
         mkdir -p test-repo/bins/$VERSION/linux
 
-        cp dist/windows/*.exe test-repo/bins/$VERSION/windows/
-        cp dist/linux/* test-repo/bins/$VERSION/linux/
+        if compgen -G "dist/windows/*.exe" > /dev/null; then
+          cp dist/windows/*.exe test-repo/bins/$VERSION/windows/
+        else
+          echo "⚠️ No Windows binaries found. Skipping Windows sync."
+        fi
+
+        if compgen -G "dist/linux/*" > /dev/null; then
+          cp dist/linux/* test-repo/bins/$VERSION/linux/
+        else
+          echo "⚠️ No Linux binaries found. Skipping Linux sync."
+        fi
 
         cd test-repo
         git config user.name "github-actions[bot]"

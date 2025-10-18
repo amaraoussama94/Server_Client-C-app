@@ -38,10 +38,14 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
         log_message(LOG_ERROR, "[FILE] Blocked file type '%s' for security reasons.", ext);
         return;
     }
-
-    char path[256];
-    snprintf(path, sizeof(path), "../assets/to_send/%s", filename);
+   
+    /*const char* root = get_working_directory_path();
+    if (!root) return;
+    char path[512];
+    snprintf(path, sizeof(path), "%s/assets/to_send/%s", root, filename);*/
     print_working_directory();
+    const char* path = resolve_asset_path("to_send", filename);
+        if (!path) return;
 
     FILE* fp = fopen(path, "rb");
     if (!fp) {

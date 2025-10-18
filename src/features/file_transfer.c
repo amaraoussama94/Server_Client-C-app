@@ -168,8 +168,10 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);
 
-        char path[256];
-        snprintf(path, sizeof(path), "../assets/received/from_%d_%s", buf->src_id, buf->filename);
+        /*char path[256];
+        snprintf(path, sizeof(path), "../assets/received/from_%d_%s", buf->src_id, buf->filename);*/
+        const char* path = resolve_asset_path("received", buf->filename);
+        if (!path) return;
         FILE* fp = fopen(path, "wb");
         if (fp) {
             fwrite(full, 1, strlen(full), fp);

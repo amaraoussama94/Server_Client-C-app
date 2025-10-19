@@ -3,9 +3,10 @@
  * @brief Routes parsed commands to appropriate handlers based on channel and status.
  *        Supports chat, file, game, and system logic with delivery confirmation.
  *        Delegates file logic to features/file_transfer.c.
- * @date 2025-09-28
+ *        Logs key events including ACK receipt, file size, and chunk count.
+ * @date 2025-10-19
  * @author Oussama
- * @version 2.1
+ * @version 2.2
  */
 
 #include "dispatcher.h"
@@ -21,6 +22,7 @@
 /**
  * @brief Dispatches a parsed command to its appropriate handler.
  *        Handles chat, file, game, and system channels.
+ *        Logs delivery confirmation and file transfer lifecycle.
  * @param cmd Pointer to parsed command.
  */
 void dispatch_command(const ParsedCommand* cmd) {
@@ -40,6 +42,14 @@ void dispatch_command(const ParsedCommand* cmd) {
                 char ack_msg[MAX_COMMAND_LENGTH];
                 build_frame("system", 0, cmd->dest_id, "DELIVERY_CONFIRMED", "ACK", ack_msg);
                 send(sender_fd, ack_msg, strlen(ack_msg), 0);
+                //to do fix routing for ack file
+                if (strcmp(cmd->channel, "file") == 0) {
+                    log_message(LOG_INFO, "[FILE] ACK received from client %d and confirmation sent to client %d",
+                                 cmd->dest_id ,cmd->src_id);   
+                } else {  
+                log_message(LOG_INFO, "[SYSTEM] ACK received from client %d and confirmation sent to client %d",
+                            cmd->src_id, cmd->dest_id);
+                }
             }
         }
         return;
@@ -86,6 +96,7 @@ void dispatch_command(const ParsedCommand* cmd) {
     // ─────────────────────────────────────────────
     if (strcmp(cmd->channel, "file") == 0) {
         int dest_fd = get_socket_by_id(cmd->dest_id);
+
         if (strcmp(cmd->status, "REQUEST") == 0) {
             if (dest_fd <= 0) {
                 log_message(LOG_ERROR, "[FILE] Target client %d not available", cmd->dest_id);
@@ -98,15 +109,22 @@ void dispatch_command(const ParsedCommand* cmd) {
             log_message(LOG_INFO, "[FILE] Notified client %d of incoming file '%s' from client %d",
                         cmd->dest_id, cmd->message, cmd->src_id);
         }
+
         else if (strcmp(cmd->status, "READY") == 0) {
             int receiver_fd = get_socket_by_id(cmd->src_id);  // src_id is the one who sent READY
             if (receiver_fd <= 0) {
                 log_message(LOG_ERROR, "[FILE] Destination client %d not available for delivery", cmd->src_id);
                 return;
             }
+
+            log_message(LOG_INFO, "[FILE] Client %d is ready to receive '%s' from client %d",
+                        cmd->src_id, cmd->message, cmd->dest_id);
             send_file_to_client(&receiver_fd, cmd->message, cmd->dest_id, cmd->src_id);
         }
 
+        else if (strcmp(cmd->status, "ACK") == 0) {
+            log_message(LOG_INFO, "[FILE] Received ACK for '%s' from client %d", cmd->message, cmd->src_id);
+        }
 
         return;
     }

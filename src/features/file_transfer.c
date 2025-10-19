@@ -186,6 +186,7 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);
 
+        /*const char* path = resolve_asset_path("received", buf->filename);*/
         const char* path = resolve_asset_path("received", buf->filename);
         if (!path) return;
 

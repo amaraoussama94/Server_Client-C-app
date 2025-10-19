@@ -5,8 +5,8 @@
  *        retry logic, timeout detection, and progress tracking.
  *        Used by dispatcher and client listener threads.
  * @author Oussama Amara
- * @version 1.5
- * @date 2025-10-05
+ * @version 1.6
+ * @date 2025-10-19
  */
 
 #include "file_transfer.h"
@@ -27,6 +27,14 @@ FileBuffer buffers[MAX_CLIENTS]; ///< Client-side reassembly buffers
 // SERVER-SIDE: Send file in chunked frames with progress
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Sends a file to a client in chunked frames with progress logging.
+ *        Validates file type, resolves path, and confirms delivery.
+ * @param connfd Pointer to socket descriptor.
+ * @param filename Name of the file to send.
+ * @param src_id Sender client ID.
+ * @param dest_id Receiver client ID.
+ */
 void send_file_to_client(int* connfd, const char* filename, int src_id, int dest_id) {
     if (!connfd || !filename || src_id < 0 || dest_id < 0) {
         log_message(LOG_ERROR, "Invalid file transfer parameters.");
@@ -38,14 +46,10 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
         log_message(LOG_ERROR, "[FILE] Blocked file type '%s' for security reasons.", ext);
         return;
     }
-   
-    /*const char* root = get_working_directory_path();
-    if (!root) return;
-    char path[512];
-    snprintf(path, sizeof(path), "%s/assets/to_send/%s", root, filename);*/
+
     print_working_directory();
     const char* path = resolve_asset_path("to_send", filename);
-        if (!path) return;
+    if (!path) return;
 
     FILE* fp = fopen(path, "rb");
     if (!fp) {
@@ -59,6 +63,7 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
     int total_chunks = (file_size + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE;
 
     log_message(LOG_INFO, "[FILE] Preparing to send '%s' (%ld bytes) to client %d", filename, file_size, dest_id);
+    log_message(LOG_INFO, "[FILE] Total chunks to send: %d", total_chunks);
 
     char chunk[MAX_CHUNK_SIZE + 1];
     int seq = 0;
@@ -96,6 +101,11 @@ void send_file_to_client(int* connfd, const char* filename, int src_id, int dest
 // CLIENT-SIDE: Respond to INCOMING with READY
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Handles INCOMING file notification and responds with READY.
+ * @param cmd Parsed command containing file metadata.
+ * @param sockfd Socket to send READY frame.
+ */
 void handle_file_incoming(const ParsedCommand* cmd, int sockfd) {
     FileBuffer* buf = &buffers[cmd->src_id];
     buf->active = 1;
@@ -117,6 +127,11 @@ void handle_file_incoming(const ParsedCommand* cmd, int sockfd) {
 // CLIENT-SIDE: Buffer chunks, reassemble, retry, and track progress
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Handles incoming file chunks, buffers them, triggers retries, and reassembles when complete.
+ * @param cmd Parsed command containing chunk data and metadata.
+ * @param sockfd Socket to send retry or ACK frames.
+ */
 void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
     FileBuffer* buf = &buffers[cmd->src_id];
     if (!buf->active) {
@@ -148,12 +163,15 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
                 return;
             }
 
+            if (buf->retry_count[i] == 1 || buf->retry_count[i] % 5 == 0) {
+                log_message(LOG_INFO, "[FILE] Requested retry for chunk #%d (attempt %d)", i, buf->retry_count[i]);
+            }
+
             char retry[MAX_COMMAND_LENGTH];
             snprintf(retry, sizeof(retry), "RETRY|%d", i);
             build_frame("file", 0, buf->src_id, retry, "RETRY", retry);
             send(sockfd, retry, strlen(retry), 0);
             buf->last_retry[i] = now;
-            log_message(LOG_INFO, "[FILE] Requested retry for chunk #%d", i);
         }
     }
 
@@ -168,19 +186,20 @@ void handle_file_chunk(const ParsedCommand* cmd, int sockfd) {
         for (int i = 0; i <= buf->final_seq; ++i)
             strncat(full, buf->chunks[i], sizeof(full) - strlen(full) - 1);
 
-        /*char path[256];
-        snprintf(path, sizeof(path), "../assets/received/from_%d_%s", buf->src_id, buf->filename);*/
         const char* path = resolve_asset_path("received", buf->filename);
         if (!path) return;
+
         FILE* fp = fopen(path, "wb");
         if (fp) {
             fwrite(full, 1, strlen(full), fp);
             fclose(fp);
 
             char ack[MAX_COMMAND_LENGTH];
-            build_frame("system", cmd->dest_id, cmd->src_id, buf->filename, "ACK", ack);
+            //src_id: 0 — the system/server is the one sending the ACK frame
+            build_frame("system",cmd->src_id, cmd->dest_id , buf->filename, "ACK", ack);
             send(sockfd, ack, strlen(ack), 0);
-            log_message(LOG_INFO, "[FILE] File '%s' saved and ACK sent to sender %d", buf->filename, buf->src_id);
+            log_message(LOG_INFO, "[FILE] File '%s' saved and ACK sent to sender %d from receiver %d",
+            buf->filename, cmd->src_id, cmd->dest_id);
         } else {
             char err[MAX_COMMAND_LENGTH];
             build_frame("system", cmd->dest_id, cmd->src_id, buf->filename, "ERR", err);

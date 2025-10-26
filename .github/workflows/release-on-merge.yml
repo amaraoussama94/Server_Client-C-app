@@ -161,7 +161,7 @@ jobs:
           - [x] VERSION updated
 
         labels: version-bump, automated
-        assignees: OussamaAmara
+        assignees: amaraoussama94 
 
     - name: 🧾 Checkout again after merge
       if: github.ref == 'refs/heads/main'
